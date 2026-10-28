@@ -1,0 +1,31 @@
+/* map: 一覧は回線と地図ライブラリに依存しない。 */
+.map-page{padding-bottom:env(safe-area-inset-bottom,0px);overflow-wrap:anywhere}
+.map-page h2{font-size:18px;margin-top:24px}
+.map-legend{display:flex;flex-wrap:wrap;gap:12px;color:var(--ink)}
+.map-spot{border:1px solid var(--line);border-left:5px solid var(--green);border-radius:12px;padding:16px;margin:12px 0;background:var(--paper)}
+.map-spot.map-visited{border-left-color:var(--orange)}
+.map-badge{display:inline-block;color:var(--green);font-size:13px;margin-bottom:8px}
+.map-visited .map-badge{color:var(--orange)}
+.map-spot h3{font-size:17px;margin:0}
+.map-spot p{margin:8px 0}
+.map-date{font-size:13px;color:var(--muted)}
+.map-note{white-space:pre-wrap}
+.map-links{display:flex;flex-wrap:wrap;gap:4px 8px;margin:8px 0}
+.map-links a{min-height:44px;min-width:44px;padding:10px 0;font-size:14px;text-align:left;justify-content:flex-start}
+.map-spot button,.map-optional button{min-height:44px;min-width:44px;max-width:100%}
+.map-optional{margin-top:24px}
+.map-panel{height:320px;height:min(55dvh,380px);min-height:280px;background:var(--soft);border-radius:12px;overflow:hidden;position:relative;isolation:isolate;text-align:left}
+.map-panel.leaflet-container{font:14px/1.5 -apple-system,BlinkMacSystemFont,sans-serif}
+.map-panel .leaflet-control-zoom a{min-width:44px;min-height:44px;line-height:44px}
+.map-panel .leaflet-control-attribution a{min-height:44px;min-width:44px;padding:4px;align-items:center}
+.map-panel .leaflet-popup-content{color:var(--ink);max-width:220px;overflow-wrap:anywhere;margin:20px 44px 20px 16px}
+.map-panel .leaflet-popup-content a{color:var(--cyan)}
+.map-panel .leaflet-popup-close-button{min-width:44px;min-height:44px;line-height:44px}
+.map-marker{display:grid;place-items:center}
+.map-marker span{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--cyan);color:var(--on-accent);border:2px solid var(--paper);font-size:18px;box-shadow:var(--shadow)}
+.map-marker-visited span{background:var(--gold);color:var(--bg);border-radius:9px}
+.map-marker:focus-visible{outline:3px solid var(--orange)}
+.map-panel .leaflet-tile-pane{filter:var(--map-filter)}
+.map-panel .leaflet-popup-content-wrapper,.map-panel .leaflet-popup-tip,.map-panel .leaflet-control{background:var(--paper);color:var(--ink)}
+.map-panel .leaflet-control a{background:var(--paper);color:var(--cyan)}
+.map-page h2 small,.map-badge{display:inline-block;padding:4px 9px;border:1px solid var(--edge-gold);border-radius:8px;background:var(--peach);color:var(--gold);font:13px/1.7 ui-monospace,monospace}

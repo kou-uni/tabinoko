@@ -1,0 +1,18 @@
+/* compose 専用。色はライト/ダーク共通トークンに従う。 */
+.compose-screen{min-width:0;padding-bottom:env(safe-area-inset-bottom,0px);overflow-wrap:anywhere}
+.compose-screen textarea,.compose-screen input,.compose-screen select{font-size:16px;max-width:100%}
+.compose-screen button,.compose-screen a,.compose-screen input,.compose-screen select{min-height:44px;min-width:44px}
+.compose-screen textarea{scroll-margin-bottom:calc(var(--nav-h) + 24px);min-height:132px}
+.compose-voice{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin:13px 0;border-style:dashed;background:var(--soft)}
+.compose-photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.compose-photos img{width:calc(50% - 4px);height:130px;object-fit:cover;border-radius:12px}
+.compose-draft textarea{min-height:180px;line-height:1.8;background:var(--bg)}
+.compose-actions{display:flex;flex-wrap:wrap;gap:8px}
+.compose-actions button{flex:1 1 110px}
+.compose-actions a{width:100%;border:1px solid var(--line);background:var(--soft)}
+.compose-actions a[aria-disabled=true]{color:var(--muted);background:var(--bg)}
+#compose-generate{margin-top:20px}
+#compose-status{margin-top:16px}
+
+.compose-draft label,.compose-draft .caption{font-family:ui-monospace,monospace;color:var(--gold)}
+.compose-draft label{letter-spacing:.06em}

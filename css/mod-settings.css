@@ -1,0 +1,7 @@
+/* 設定と、記録を遮らない案内 */
+.settings-coach:empty { display: none; }
+.settings-coach { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.settings-coach p { margin: 0 0 6px; font-size: 14px; }
+.settings-coach button { margin-right: 8px; }
+#settings-export .file-label { display: flex; justify-content: center; margin: 8px 0; }
+#settings-pwa ~ ol { padding-left: 1.5em; }

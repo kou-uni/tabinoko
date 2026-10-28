@@ -1,0 +1,43 @@
+/* plan — module-only styles; shared tokens include dark mode. */
+.plan-page{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));overflow-wrap:anywhere}
+.plan-hero{border-bottom:1px solid var(--line);padding-top:20px;overflow:hidden}
+.plan-hero h1{font-family:serif;font-size:28px}
+.plan-hero p{font-size:13px;color:var(--muted)}
+.plan-hero .skyline{display:block;width:100%;height:100px}
+.plan-switch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:18px 0}
+.plan-switch button{padding:10px 4px}
+.plan-now h2{font-size:18px}
+.plan-now p{font-size:14px}
+.plan-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.plan-actions>*{flex:1 1 120px}
+.plan-dates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:14px}
+.plan-dates button{font-size:13px;padding:8px 4px}
+.plan-dates button[aria-pressed=true]{background:var(--green);color:var(--on-accent)}
+.plan-day{padding:16px}
+.plan-day .day-top{flex-wrap:wrap}
+.plan-day .badge{white-space:normal}
+.plan-day h2{font-size:19px}
+.plan-note{white-space:pre-wrap;font-size:14px;color:var(--muted)}
+.plan-stop{display:flex;align-items:center;gap:8px;border-top:1px dashed var(--line);padding:14px 0}
+.plan-stop-body{flex:1;min-width:0;overflow-wrap:anywhere}
+.plan-stop-body p{margin:4px 0}
+.plan-stop>button{flex-shrink:0;padding:8px;min-width:44px}
+.plan-time{font-size:16px;font-weight:600;color:var(--green)}
+.plan-update{background:var(--soft);border-radius:12px;padding:12px;margin-bottom:14px}
+.plan-editor{overflow-wrap:anywhere;padding-bottom:env(safe-area-inset-bottom,0px)}
+.plan-editor input,.plan-editor textarea,.plan-editor select{font-size:16px}
+.plan-editor .plan-check{width:44px;min-height:44px;vertical-align:middle}
+.plan-editor button,.plan-page button{min-height:44px;min-width:44px}
+.plan-error{color:var(--orange)}
+@media(min-width:500px){.plan-dates{grid-template-columns:repeat(5,minmax(0,1fr))}}
+
+.plan-hero{padding-top:30px}
+.plan-hero h1{font-family:inherit;font-weight:400}
+.plan-hero p:last-of-type{font-family:ui-monospace,monospace;color:var(--gold);letter-spacing:.04em}
+.plan-hero .skyline{color:var(--gold);opacity:.7;margin-top:24px}
+.plan-now{border-top-color:var(--cyan);box-shadow:var(--glow)}
+.plan-now h2{color:var(--cyan)}
+.plan-time{color:var(--gold);font-family:ui-monospace,monospace;font-weight:500}
+.plan-dates button{position:relative;padding-bottom:14px}
+.plan-dates button::after{content:'';position:absolute;bottom:5px;left:9px;right:9px;height:2px;background:var(--line)}
+.plan-dates button[aria-pressed=true]::after{background:var(--on-accent)}

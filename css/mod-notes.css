@@ -1,0 +1,14 @@
+/* notes のみ。色は共有トークンでライト／ダークに追従。 */
+.notes-page{min-width:0;padding-bottom:env(safe-area-inset-bottom,0px);overflow-wrap:anywhere}
+.notes-page textarea,.notes-page select,.notes-page input{font-size:16px}
+.notes-page textarea{min-height:128px;min-height:clamp(128px,22dvh,210px)}
+.notes-page button,.notes-page select{min-height:44px;min-width:44px}
+.notes-page .notes-choice{display:flex;align-items:center;gap:12px;min-height:48px;font-size:14px;margin:12px 0;cursor:pointer}
+.notes-choice input{flex:0 0 24px;width:24px;height:24px;min-height:24px;margin:0;accent-color:var(--green)}
+.notes-choice:focus-within{outline:2px solid var(--orange);outline-offset:3px;border-radius:8px}
+.notes-page .notes-help,.notes-meta{font-size:13px;color:var(--muted);margin:8px 0 12px}
+.notes-page #memo-save{margin:16px 0 8px}
+.notes-page #notes-status:empty{display:none}
+.notes-actions{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.notes-actions [aria-pressed=true]{background:var(--soft);border-color:var(--green)}
+.notes-entry img{display:block;max-width:100%;height:auto;border-radius:12px;margin-bottom:12px}

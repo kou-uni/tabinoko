@@ -1,0 +1,8 @@
+/* suggest の画面。色と上下の safe-area は共通シェルのトークンを使う。 */
+.suggest-page{padding-top:24px;padding-bottom:env(safe-area-inset-bottom,0px);min-width:0;overflow-wrap:anywhere}
+.suggest-page h1{font-size:24px}
+.suggest-card h2{font-size:17px}
+.suggest-card select{font-size:16px;min-height:44px;max-width:100%;margin-bottom:14px}
+.suggest-page button{min-width:44px;min-height:44px;white-space:normal}
+.suggest-reason{font-size:14px;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+.suggest-empty{background:var(--soft);color:var(--ink);padding:16px;border-radius:14px}

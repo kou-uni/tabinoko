@@ -1,0 +1,26 @@
+/* recap の日別アルバム。配色は共通のライト/ダークトークンに追従。 */
+.recap-view{min-width:0;overflow-wrap:anywhere;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+.recap-view button{min-width:44px;min-height:44px;font-size:16px;white-space:normal}
+.recap-variants{display:flex;gap:8px;margin:18px 0 12px}
+.recap-variants button{flex:1;min-width:0}
+.recap-variants button[aria-pressed="true"]{background:var(--soft);border-color:var(--green);font-weight:700}
+.recap-guide{font-size:16px}
+.recap-greeting:empty{display:none}
+.recap-greeting{background:var(--soft);border-radius:14px;padding:18px;margin:18px 0;font-size:16px}
+.recap-greeting .fairy-large{width:65px;height:70px;margin-bottom:8px}
+.recap-chapter{margin:24px 0 32px}
+.recap-chapter-head{display:block;min-height:0;padding:16px 0 8px;border:0}
+.recap-chapter-head h2{margin-bottom:4px}
+.recap-chapter-number,.recap-kind{color:var(--green);font-size:14px;margin-bottom:8px}
+.recap-slide{padding:18px;margin:12px 0;border:1px solid var(--line);border-radius:14px;background:var(--paper)}
+.recap-text{white-space:pre-wrap;overflow-wrap:anywhere;font-family:serif;font-size:20px;line-height:1.85;margin:12px 0}
+.recap-photo{margin:12px 0;background:var(--soft);border-radius:12px;overflow:hidden}
+.recap-photo img{display:block;width:100%;height:auto;max-height:430px;max-height:min(430px,55dvh);object-fit:contain}
+.recap-photo-error{padding:16px;font-size:16px}
+.recap-empty,.recap-hd{padding:22px 18px;border:1px solid var(--line);border-radius:14px;background:var(--paper);margin:24px 0}
+.recap-empty button{display:block;width:100%;margin-top:12px}
+.recap-hd h2{font-size:20px}
+.recap-hd .badge{margin-bottom:12px}
+.recap-hd button{width:100%}
+.recap-status{margin:12px 0 0;font-size:16px}
+.recap-status:empty{display:none}

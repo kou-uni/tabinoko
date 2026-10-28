@@ -1,0 +1,17 @@
+{
+  "name": "たびのこ — いっしょに旅へ。",
+  "short_name": "たびのこ",
+  "description": "旅を羨ましがって、妖精のように一緒に行ってくれる、ひとり旅のお供。データは端末の中だけ。",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0e17",
+  "theme_color": "#0b0e17",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
