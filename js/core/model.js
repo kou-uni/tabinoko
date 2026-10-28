@@ -71,7 +71,7 @@
   const FACTORY = {
     trip: () => ({ id: 'trip', name: 'たびのこ', origin: '', destination: '', start: '', end: '', tzHome: 'Asia/Tokyo', tzDest: 'Asia/Kolkata' }),
     purposes: () => ({ id: 'purposes', purposeIds: [], audienceIds: [], note: '' }),
-    settings: () => ({ id: 'settings', schema: 2, uiHaptics: false, uiSound: false, onboardedAt: null, seedRev: 0, angleDefault: 'surprise', lastBackupAt: null, backupNudgeAt: null, installCoachDismissedAt: null, persistAsked: false, wantsHdVideo: false, migratedV1: null }),
+    settings: () => ({ id: 'settings', schema: 2, uiHaptics: false, uiSound: true, uiFairy: true, uiMotion: true, onboardedAt: null, seedRev: 0, angleDefault: 'surprise', lastBackupAt: null, backupNudgeAt: null, installCoachDismissedAt: null, persistAsked: false, wantsHdVideo: false, migratedV1: null }),
     drafts: () => ({ id: 'drafts' }),
     days: () => ({ id: '', date: '', title: '', headline: '', note: '', items: [], candidates: [], edited: false, seedRev: 0, staleSeed: 0 }),
     spots: () => ({ id: '', name: '', lat: null, lng: null, note: '', kind: 'sight', custom: true }),

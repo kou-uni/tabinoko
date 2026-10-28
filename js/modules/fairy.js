@@ -46,11 +46,11 @@
     let alive = true, busy = false;
     const list = store.all('hearing').sort((a, b) => String(a.at || a.date).localeCompare(String(b.at || b.date)));
     const latest = list[list.length - 1];
-    root.innerHTML = '<section class="fairy-view">' + ui.heading('YOUR LITTLE TRAVEL COMPANION', '旅の記録係')
-      + '<div class="fairy-intro">' + ui.fairy('fairy-large') + '<span>記録係 · たびのこ</span></div>'
+    root.innerHTML = '<section class="fairy-view">' + ui.heading('YOUR LITTLE TRAVEL COMPANION', 'たびのこと話す')
+      + '<div class="fairy-intro">' + ui.fairyAnimated('fairy-large') + '<span>気になったお店、あった？</span></div>'
       + '<div class="fairy-bubble" id="fairy-answer" role="status">' + esc(latest ? latest.fairyReply || reply({ text: latest.text }) : '店名と値段を残すと、あとで探しやすい。') + '</div>'
       + (returning() ? '<div class="fairy-return"><p>' + esc(recap()) + '</p><button class="warm wide" data-route="recap">アルバムを開く →</button></div>' : '')
-      + '<form id="chat-form"><label for="chat-text">旅のこと、少しずつ聞かせて</label><textarea id="chat-text" maxlength="2000" aria-describedby="fairy-help" placeholder="石窟で彫刻をゆっくり見てみたいな"></textarea><p class="caption" id="fairy-help">何回に分けても大丈夫。回線がなくても、話と書きかけはこの端末に残せるよ。パスポート・ETA・予約番号は書かないでね。</p><button type="button" class="voice" id="chat-voice">' + ui.icon('mic') + '声で話す</button><p class="caption">入力欄を開いて、キーボードのマイクで話してね。音声入力には通信が必要な場合があります（OS・端末の設定によります）。</p><button class="primary wide" id="fairy-send">たびのこに話す ✧</button><p id="fairy-error" role="alert"></p></form>'
+      + '<form id="chat-form"><label for="chat-text">旅のこと、少しずつ聞かせて</label><textarea id="chat-text" maxlength="2000" aria-describedby="fairy-help" placeholder="石窟で彫刻をゆっくり見てみたいな"></textarea><p class="caption" id="fairy-help">何回に分けても大丈夫。回線がなくても、話と書きかけはこの端末に残せるよ。パスポート・ETA・予約番号は書かないでね。</p><button type="button" class="voice" id="chat-voice">' + ui.icon('mic') + '声で話す</button><p class="caption">入力欄を開いて、キーボードのマイクで話してね。音声入力には通信が必要な場合があります（OS・端末の設定によります）。</p><button class="primary wide" id="fairy-send">たびのこに話す</button><p id="fairy-error" role="alert"></p></form>'
       + '<button class="text-btn wide" data-route="plan">旅のしおりをひらく →</button><h2>これまで聞かせてくれた話</h2><div id="fairy-history">' + (list.length ? list.map(history).join('') : '<p class="caption">まだお話はないよ。短いひとことからでもうれしいな。</p>') + '</div></section>';
     const ta = $('#chat-text', root), send = $('#fairy-send', root), voice = $('#chat-voice', root), error = $('#fairy-error', root);
     ui.bindDraft(ta, 'hearing');
@@ -69,13 +69,13 @@
         bus.emit('hearing:added', { entry });
         if (!alive) return;
         ta.value = '';
-        $('#fairy-answer', root).textContent = answer;
+        $('#fairy-answer', root).textContent = T.saveUI.savedLabel() + '。' + answer;
         $('#fairy-history', root).innerHTML = store.all('hearing').sort((a, b) => String(a.at || a.date).localeCompare(String(b.at || b.date))).map(history).join('');
       } catch (err) {
-        if (alive) error.textContent = 'ごめんね、まだ保存できなかったよ。お話はここに残してあるから、もう一度試してね。';
+        if (alive) error.textContent = '保存できなかったよ。入力はこのままです。もう一度保存してください。';
       } finally {
         busy = false;
-        if (alive) { send.disabled = false; ta.readOnly = false; voice.disabled = false; send.textContent = 'たびのこに話す ✧'; }
+        if (alive) { send.disabled = false; ta.readOnly = false; voice.disabled = false; send.textContent = 'たびのこに話す'; }
       }
     };
     return () => { alive = false; };

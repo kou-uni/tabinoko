@@ -9,3 +9,5 @@
 .upgrade-panel button,.upgrade-panel a{min-height:44px}
 .upgrade-purchase a,.upgrade-purchase button{width:100%;white-space:normal;text-align:center}
 .upgrade-status{min-height:1.6em;margin-top:16px;color:var(--cyan)}
+
+.upgrade-panel{background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:20px}.upgrade-form{margin-top:36px}.upgrade-price{font-variant-numeric:tabular-nums}

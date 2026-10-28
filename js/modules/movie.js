@@ -8,7 +8,7 @@
     ['days', 'posts', 'notes', 'photos', 'visits'].forEach(key => { data[key] = T.store.all(key); });
     const dates = [...new Set(['posts', 'notes', 'photos', 'visits'].flatMap(key => data[key].map(row => row.date).filter(Boolean)))].sort();
     const hd = R.hasHd(T.license);
-    root.innerHTML = '<section class="movie-view">' + T.ui.heading('TRAVEL MOVIE', '旅を、ムービーに。')
+    root.innerHTML = '<section class="movie-view">' + T.ui.heading('TRAVEL MOVIE', '旅を、ムービーに') + T.ui.guide('残した写真とことばで、ムービーを作るよ')
       + '<button class="text-btn" data-route="recap">← 振り返りへ戻る</button>'
       + '<p>残した言葉と写真を、ひとつの動画にしよう。写真はこの端末だけで使うよ。</p>'
       + '<div class="movie-options card"><label for="movie-variant">書き方</label><select id="movie-variant"><option value="memory">思い出動画</option><option value="learning">学びの記録</option></select>'
@@ -45,6 +45,7 @@
       if (!R.mimeType(window.MediaRecorder) || typeof canvas.captureStream !== 'function') status.textContent = 'このブラウザでは動画を作れないみたい。振り返りのアルバムはそのまま見られるよ。Safariなど、別の対応ブラウザで作るには記録の引っ越しが必要だよ。';
     }
     function clearResult() {
+      create.classList.add('primary'); find('.movie-save').classList.remove('primary');
       video.pause(); video.removeAttribute('src'); video.load();
       if (url) URL.revokeObjectURL(url);
       url = null; result = null; download.removeAttribute('href'); find('.movie-result').hidden = true;
@@ -54,7 +55,9 @@
       const composed = composition();
       if (!composed.entryCount) return;
       clearResult();
+      T.feedback.quiet();
       controller = new AbortController();
+      const fairy = root.querySelector('.fairy-animated'); if (fairy) { fairy.classList.add('fairy-working'); setTimeout(() => fairy.classList.remove('fairy-working'), 480); }
       [variant, date, quality, create].forEach(el => { el.disabled = true; });
       cancel.hidden = false; canvas.hidden = false; find('.movie-progress').hidden = false; progress.value = 0;
       find('.movie-percent').textContent = '0%';
@@ -69,6 +72,7 @@
         result = output; url = URL.createObjectURL(output.blob);
         video.src = url; download.href = url; download.download = 'tabinoko-' + composed.variant + '.' + output.extension;
         find('.movie-result').hidden = false;
+        create.classList.remove('primary'); find('.movie-save').classList.add('primary');
         status.textContent = output.missingPhotos
           ? 'できたよ。ただ、' + output.missingPhotos + '枚の写真を開けず、背景と言葉でつないだよ。再生して確かめてね。'
           : 'できたよ！ 再生してから、端末に保存してね。';
@@ -83,6 +87,7 @@
           cancel.hidden = true; canvas.hidden = true;
           canvas.width = canvas.height = 1;
           summary();
+          if (result) T.feedback.reward(true);
         }
       }
     }

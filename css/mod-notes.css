@@ -6,9 +6,11 @@
 .notes-page .notes-choice{display:flex;align-items:center;gap:12px;min-height:48px;font-size:14px;margin:12px 0;cursor:pointer}
 .notes-choice input{flex:0 0 24px;width:24px;height:24px;min-height:24px;margin:0;accent-color:var(--green)}
 .notes-choice:focus-within{outline:2px solid var(--orange);outline-offset:3px;border-radius:8px}
-.notes-page .notes-help,.notes-meta{font-size:13px;color:var(--muted);margin:8px 0 12px}
+.notes-page .notes-help,.notes-meta{font-size:14px;color:var(--muted);margin:8px 0 12px}
 .notes-page #memo-save{margin:16px 0 8px}
 .notes-page #notes-status:empty{display:none}
 .notes-actions{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .notes-actions [aria-pressed=true]{background:var(--soft);border-color:var(--green)}
-.notes-entry img{display:block;max-width:100%;height:auto;border-radius:0;margin-bottom:12px}
+.notes-entry img{display:block;max-width:100%;height:auto;border-radius:8px;margin-bottom:12px}
+
+.notes-page form{background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:20px}

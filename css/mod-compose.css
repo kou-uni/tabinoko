@@ -5,7 +5,7 @@
 .compose-screen textarea{scroll-margin-bottom:calc(var(--nav-h) + 24px);min-height:144px}
 .compose-voice{display:flex;align-items:center;justify-content:center;gap:9px;width:auto;margin:8px 0;border:0;background:transparent}
 .compose-photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.compose-photos img{width:calc(50% - 4px);height:130px;object-fit:contain;border-radius:0}
+.compose-photos img{width:calc(50% - 4px);height:130px;object-fit:contain;border-radius:8px}
 .compose-draft textarea{min-height:180px;line-height:1.8;background:var(--bg)}
 .compose-actions{display:flex;flex-wrap:wrap;gap:8px}
 .compose-actions button{flex:1 1 110px}
@@ -14,7 +14,9 @@
 #compose-generate{margin-top:20px}
 #compose-status{margin-top:16px}
 
-.compose-draft label,.compose-draft .caption{font-family:ui-monospace,monospace;color:var(--gold)}
-.compose-draft label{letter-spacing:.06em}
+.compose-draft label,.compose-draft .caption{font-family:inherit;color:var(--gold)}
+.compose-draft label{letter-spacing:0}
 
-.draft-tabs{display:flex;gap:8px;margin-top:24px}.draft-tabs button{flex:1;border:0;border-bottom:2px solid var(--divider)}.draft-tabs button[aria-selected=true]{color:var(--accent);border-color:var(--accent)}.compose-draft{padding:12px 0}.compose-context{margin:12px 0}.compose-screen .page-head{margin-bottom:8px}
+.draft-tabs{display:flex;gap:8px;margin-top:24px}.draft-tabs button{flex:1;border:0;border-bottom:2px solid var(--divider)}.draft-tabs button[aria-selected=true]{color:var(--accent-text);border-color:var(--accent-text)}.compose-draft{padding:12px 0}.compose-context{margin:12px 0}.compose-screen .page-head{margin-bottom:8px}
+
+.compose-screen form{background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:20px}.compose-draft{background:var(--paper);padding:16px;border:2px solid var(--line);border-radius:0 0 16px 16px}.draft-tabs{gap:4px}.draft-tabs button{border:2px solid var(--line);border-radius:16px 16px 0 0;box-shadow:none}.draft-tabs button[aria-selected=true]{background:var(--soft);color:var(--ink)}

@@ -22,16 +22,27 @@
     clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
     download: '<path d="M12 3v12m-4-4 4 4 4-4M5 20h14"/>',
   };
-  const FAIRY = '<path d="M34 49C2 17 4 73 35 70M66 49C98 17 96 73 65 70" fill="#f2c899" stroke="#bb855d" stroke-width="1.4"/><path d="M32 76q-6-49 18-54 24 5 18 54-17 12-36 0" fill="#d4ddae" stroke="#50734a" stroke-width="1.5"/><path d="M49 24Q35 9 45 7q10 1 5 17Q65 7 70 13q3 10-20 11" fill="#70935b"/><ellipse cx="42" cy="52" rx="2" ry="3" fill="#304c35"/><ellipse cx="59" cy="52" rx="2" ry="3" fill="#304c35"/><path d="M47 61q4 4 8 0" fill="none" stroke="#304c35" stroke-width="1.7" stroke-linecap="round"/><ellipse cx="36" cy="59" rx="5" ry="3" fill="#e4ad89"/><ellipse cx="65" cy="59" rx="5" ry="3" fill="#e4ad89"/><path d="m15 22 2-5 2 5 5 2-5 2-2 5-2-5-5-2zM79 35l2-5 2 5 5 2-5 2-2 5-2-5-5-2z" fill="#c68a4d"/>';
+  const FAIRY = '<path class="fairy-wing fairy-wing-left" d="M34 49C2 17 4 73 35 70" fill="#f2c899" stroke="#bb855d" stroke-width="1.4"/><path class="fairy-wing fairy-wing-right" d="M66 49C98 17 96 73 65 70" fill="#f2c899" stroke="#bb855d" stroke-width="1.4"/><path d="M32 76q-6-49 18-54 24 5 18 54-17 12-36 0" fill="#d4ddae" stroke="#50734a" stroke-width="1.5"/><path d="M49 24Q35 9 45 7q10 1 5 17Q65 7 70 13q3 10-20 11" fill="#70935b"/><g class="fairy-eyes"><ellipse cx="42" cy="52" rx="2" ry="3" fill="#304c35"/><ellipse cx="59" cy="52" rx="2" ry="3" fill="#304c35"/></g><path d="M47 61q4 4 8 0" fill="none" stroke="#304c35" stroke-width="1.7" stroke-linecap="round"/><ellipse cx="36" cy="59" rx="5" ry="3" fill="#e4ad89"/><ellipse cx="65" cy="59" rx="5" ry="3" fill="#e4ad89"/><path d="m15 22 2-5 2 5 5 2-5 2-2 5-2-5-5-2zM79 35l2-5 2 5 5 2-5 2-2 5-2-5-5-2z" fill="#c68a4d"/>';
 
   const icons = Object.assign({}, ICONS);
   let spriteEl = null;
   const symbols = () => Object.entries(icons).map(([n, d]) => '<symbol id="i-' + n + '" viewBox="0 0 24 24">' + d + '</symbol>').join('') + '<symbol id="fairy" viewBox="0 0 100 100">' + FAIRY + '</symbol>';
 
-  let toastTimer;
+  let toastTimer, themeMedia;
+  function syncThemeColor() {
+    const theme = document.documentElement.dataset.theme;
+    const dark = theme === 'dark' || (theme === 'auto' && themeMedia.matches);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', dark ? '#18263D' : '#FFF6E5');
+  }
   const ui = {
     esc,
     $,
+    applyTheme(value) {
+      document.documentElement.dataset.theme = ['dark','light','auto'].includes(value) ? value : 'light';
+      if (!themeMedia) { themeMedia = window.matchMedia('(prefers-color-scheme: dark)'); if (themeMedia.addEventListener) themeMedia.addEventListener('change', syncThemeColor); }
+      syncThemeColor();
+    },
     /** アイコンを足す。name は 'my-icon'、inner は 24x24 の stroke 用 path 群。 */
     addIcons(map) { Object.assign(icons, map); if (spriteEl) spriteEl.innerHTML = '<defs>' + symbols() + '</defs>'; },
     mountSprite() {
@@ -44,6 +55,8 @@
     icon(name) { return '<svg class="icon" aria-hidden="true"><use href="#i-' + name + '"/></svg>'; },
     /** 妖精の絵。cls に 'fairy-large' など。 */
     fairy(cls) { return '<svg class="fairy-art ' + (cls || '') + '" aria-hidden="true" focusable="false"><use href="#fairy"/></svg>'; },
+    fairyAnimated(cls) { return '<svg viewBox="0 0 100 100" class="fairy-art fairy-animated ' + esc(cls || '') + '" aria-hidden="true" focusable="false">' + FAIRY + '</svg>'; },
+    guide(text) { return '<div class="fairy-guide">' + ui.fairyAnimated('') + '<p>' + esc(text) + '</p></div>'; },
     heading(en, title, extra) { return '<div class="page-head"><h1>' + title + '</h1>' + (extra || '') + '</div>'; },
     empty(text) { return '<div class="empty">' + text + '</div>'; },
 

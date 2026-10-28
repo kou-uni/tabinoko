@@ -212,12 +212,14 @@
 
     /* ----- 書きかけ ----- */
     draft(key) { const d = cache.docs.drafts; return (d && d[key]) || ''; },
+    flushDrafts() { return saveDraft(); },
     setDraft(key, text) {
       const d = cache.docs.drafts || (cache.docs.drafts = M.make('drafts'));
       if (d[key] === text && !draftDirty) return;
       d[key] = text;
       d.updatedAt = U.iso();
       draftDirty = true;
+      if (T.saveUI && T.saveUI.ready) { T.saveUI.state = T.notebook.transition(T.saveUI.state, 'input'); T.saveUI.paint(); }
       flushDraft();
     },
 
@@ -382,7 +384,7 @@
     });
     return draftWrite;
   }
-  const flushDraft = U.debounce(() => { saveDraft().catch(() => {}); }, 400);
+  const flushDraft = U.debounce(() => { store.flushDrafts().catch(() => {}); }, 400);
   const flushDraftNow = () => { flushDraft.flush(); };
   window.addEventListener('pagehide', flushDraftNow);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushDraftNow(); });

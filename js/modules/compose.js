@@ -43,20 +43,25 @@
       angle = M.angle(restored.angle || angle).id;
       spotId = restored.spotId || null;
     }
+    if (params.record) {
+      post = S.get('posts', params.record);
+      if (post) { drafts = [post.text]; photos = post.photoIds || []; angle = M.angle(post.angle).id; spotId = post.spotId; }
+    }
     const spot = spotId && T.data.spot(spotId);
-    root.innerHTML = '<section class="compose-screen">' + ui.heading('CAPTURE THE LITTLE MOMENTS', '投稿')
+    root.innerHTML = '<section class="compose-screen">' + ui.heading('CAPTURE THE LITTLE MOMENTS', '旅のことば') + ui.guide('どんな景色だった？')
       + '<button class="text-btn" data-route="purposes" data-params=\'{"back":"post"}\'>' + esc([...S.doc('purposes').purposeIds.map(id => M.purpose(id)?.short), ...S.doc('purposes').audienceIds.map(id => M.audience(id)?.label)].filter(Boolean).join(' · ') || '目的・相手を設定') + ' / 変更</button>'
       + '<form id="post-form"><label for="post-text">いま残すこと</label><textarea id="post-text" maxlength="3000" placeholder="例：チャイ 20ルピー。甘さは強め。"></textarea>'
       + '<button type="button" id="post-voice" class="compose-voice">' + ui.icon('mic') + '音声入力</button><p class="caption">パスポート・ETA・予約番号は入力・撮影しないでください。</p>'
       + '<label for="post-photo">写真を追加（4枚まで）</label><input id="post-photo" type="file" accept="image/*" multiple><div id="compose-photos" class="compose-photos"></div>'
       + '<p class="caption">写真は端末に保存。画像の内容は解析しません。</p>'
       + '<details class="compose-context"><summary>記録の条件 · <span id="compose-date-label"></span></summary><label for="post-angle">ことばの切り口</label><select id="post-angle">' + M.ANGLES.map(a => '<option value="' + a.id + '"' + (a.id === angle ? ' selected' : '') + '>' + esc(a.label) + '</option>').join('') + '</select>'
-      + '<label for="post-date">記録する日</label><select id="post-date">' + ui.dateOptions(params.date || U.todayISO()) + '</select></details><button id="compose-generate" class="primary wide" type="submit">3案を作成・端末に保存</button></form>'
+      + '<label for="post-date">記録する日</label><select id="post-date">' + ui.dateOptions(params.date || U.todayISO()) + '</select></details><button id="compose-generate" class="primary wide" type="submit">3つの文案を作る</button></form>'
       + '<p id="compose-status" role="status" aria-live="polite"></p><p class="caption">最初の案を自動保存。Xでは文面と写真を本人が最終確認。写真はX側で選んで添付。</p><div id="drafts"></div><button id="compose-new" class="wide">次の記録を書く</button></section>';
     const field = $('#post-text');
     if ($('#compose-date-label')) $('#compose-date-label').textContent = $('#post-date').value;
     ui.bindDraft(field, 'post');
     if (params.text && !field.value) { field.value = params.text; S.setDraft('post', field.value); }
+    if (params.record && post) field.value = post.prompt || '';
     const detachVoice = T.voice.attach($('#post-voice'), field);
     if (restored.date && !params.date && !params.text && !params.angle && !params.spot) $('#post-date').innerHTML = ui.dateOptions(restored.date);
     if ($('#compose-date-label')) $('#compose-date-label').textContent = $('#post-date').value;
@@ -71,15 +76,19 @@
         a.removeAttribute('href'); a.setAttribute('aria-disabled', String(!ready || !U.isOnline()));
         if (ready && U.isOnline()) a.href = U.xIntentUrl(text.trim());
         a.textContent = !U.isOnline() ? '回線が戻ったら X で確認' : ready ? 'X で最終確認 ↗' : 'この案を保存してから X へ';
+        const saveButton = $('[data-save-post="' + a.dataset.x + '"]');
+        const saved = post && post.text === text.trim(); saveButton.disabled = !!saved || busy; saveButton.textContent = busy ? '保存中…' : saved ? T.saveUI.savedLabel() : 'この文案を端末に保存'; saveButton.classList.toggle('primary', !saved);
         const count = $('[data-count="' + a.dataset.x + '"]');
         count.textContent = n + ' / 280（X換算・目安）' + (n > 280 ? ' — 短くするとXへ渡せるよ' : '');
       });
     };
     const showDrafts = () => {
-      $('#drafts').innerHTML = '<div class="draft-tabs" role="tablist" aria-label="文案">' + drafts.map((_, i) => '<button role="tab" id="draft-tab-' + i + '" aria-controls="draft-panel-' + i + '" data-select-draft="' + i + '" tabindex="' + (i === selectedDraft ? '0' : '-1') + '" aria-selected="' + (i === selectedDraft) + '">案 ' + (i + 1) + '</button>').join('') + '</div>' + drafts.map((text, i) => '<article role="tabpanel" aria-labelledby="draft-tab-' + i + '" id="draft-panel-' + i + '" class="compose-draft" ' + (i !== selectedDraft ? 'hidden' : '') + '><label for="compose-draft-' + i + '">文案 ' + (i + 1) + '</label><textarea id="compose-draft-' + i + '" data-draft="' + i + '" aria-describedby="compose-count-' + i + '">' + esc(text) + '</textarea><p class="caption" id="compose-count-' + i + '" data-count="' + i + '"></p><div class="compose-actions"><button data-copy="' + i + '">コピー</button><button data-save-post="' + i + '">この案を端末に保存</button><a data-x="' + i + '" target="_blank" rel="noopener noreferrer">X で最終確認 ↗</a></div></article>').join('');
+      $('#compose-generate').classList.toggle('primary', !drafts.length);
+      $('#drafts').innerHTML = '<div class="draft-tabs" role="tablist" aria-label="文案">' + drafts.map((_, i) => '<button role="tab" id="draft-tab-' + i + '" aria-controls="draft-panel-' + i + '" data-select-draft="' + i + '" tabindex="' + (i === selectedDraft ? '0' : '-1') + '" aria-selected="' + (i === selectedDraft) + '">案 ' + (i + 1) + '</button>').join('') + '</div>' + drafts.map((text, i) => '<article role="tabpanel" aria-labelledby="draft-tab-' + i + '" id="draft-panel-' + i + '" class="compose-draft" ' + (i !== selectedDraft ? 'hidden' : '') + '><label for="compose-draft-' + i + '">文案 ' + (i + 1) + '</label><textarea id="compose-draft-' + i + '" data-draft="' + i + '" aria-describedby="compose-count-' + i + '">' + esc(text) + '</textarea><p class="caption" id="compose-count-' + i + '" data-count="' + i + '"></p><div class="compose-actions"><button data-copy="' + i + '">コピー</button><button data-save-post="' + i + '">この文案を端末に保存</button><a data-x="' + i + '" target="_blank" rel="noopener noreferrer">X で最終確認 ↗</a></div></article>').join('');
       sync();
     };
     async function save(text, prompt) {
+      status('保存中…');
       const row = M.make('posts', Object.assign({}, post || {}, { id: post ? post.id : U.uid(), date: $('#post-date').value, text: text.trim(), prompt, angle, spotId, photoIds: photos.slice(), purposeIds: S.doc('purposes').purposeIds, audienceIds: S.doc('purposes').audienceIds, showInTimeline: true }));
       post = await T.feedback.run(() => S.put('posts', row));
       if (alive) remember();
@@ -93,7 +102,7 @@
       angle = $('#post-angle').value;
       drafts = templates(field.value, context()); showDrafts();
       remember();
-      try { await save(drafts[0], field.value); status('文案を端末に保存。編集できます。'); }
+      try { await save(drafts[0], field.value); status(T.saveUI.savedLabel() + '。文案を編集できます。'); }
       catch (err) { status('まだ思い出に保存できていないよ。入力はここにあるので、空き容量を確かめてもう一度保存してね。'); }
       finally { busy = false; if (alive) { $('#compose-generate').disabled = false; sync(); } }
     };
@@ -111,7 +120,7 @@
           remember();
           $('#compose-photos').innerHTML = photos.map(id => '<img data-photo-id="' + esc(id) + '" alt="記録に添えた写真">').join(''); ui.hydratePhotos($('#compose-photos'));
         }
-        savedPhotos = true; status('写真を端末に保存。写真 ' + photos.length + ' / 4');
+        savedPhotos = true; status(T.saveUI.savedLabel() + '。写真 ' + photos.length + ' / 4');
       } catch (err) { status('写真を追加できなかったよ。' + (err.message || '空き容量や写真の形式を確かめてね。')); }
       finally { finish(savedPhotos ? 'success' : 'error'); photoBusy = false; if (alive) { e.target.disabled = false; e.target.value = ''; $('#compose-generate').disabled = false; } }
     };
@@ -133,11 +142,11 @@
         if (busy || photoBusy) return;
         const text = drafts[+b.dataset.savePost]; if (!text.trim()) return status('残したいことばをひとこと添えてね。');
         busy = true; b.disabled = true; sync();
-        try { await save(text, field.value); status('文案を端末に保存。Xで確認できます。'); }
+        try { await save(text, field.value); status(T.saveUI.savedLabel() + '。Xで確認できます。'); }
         catch (_) { status('保存できなかったよ。入力はここにあるので、もう一度試してね。'); }
         finally { busy = false; if (alive) { b.disabled = false; sync(); } }
       } else if (b.dataset.x !== undefined) {
-        if (!b.hasAttribute('href') || busy || !U.isOnline()) { e.preventDefault(); status('この案を端末に保存して、回線が戻ってからXで確認してね。'); }
+        if (!b.hasAttribute('href') || busy || !U.isOnline()) { e.preventDefault(); status('この文案を端末に保存して、回線が戻ってからXで確認してね。'); }
         else {
           const area = $('[data-draft="' + b.dataset.x + '"]');
           area.focus(); area.select(); area.setSelectionRange(0, area.value.length);
@@ -153,6 +162,7 @@
       if (busy || photoBusy) return;
       if (!post && (field.value.trim() || photos.length)) return status('今の瞬間を文案にして保存してから、次へ進もう。');
       if (post && (post.prompt !== field.value || JSON.stringify(post.photoIds) !== JSON.stringify(photos))) return status('書き足したひとことや写真があるよ。文案を作って保存してから、次へ進もう。');
+      $('#compose-generate').classList.toggle('primary', true);
       post = null; drafts = []; photos = []; field.value = ''; S.setDraft('post', '');
       $('#drafts').innerHTML = ''; $('#compose-photos').innerHTML = '';
       remember(); status('次はどんな瞬間に出会った？'); field.focus();

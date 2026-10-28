@@ -9,8 +9,10 @@
 .movie-progress{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
 .movie-progress label{grid-column:1/-1;margin-bottom:0}
 .movie-progress progress{width:100%;height:14px;accent-color:var(--cyan)}
-.movie-percent{color:var(--gold);font:14px ui-monospace,monospace}
+.movie-percent{color:var(--gold);font:14px ui-rounded,"Hiragino Maru Gothic ProN","Yu Gothic",system-ui,sans-serif}
 .movie-status{min-height:3em;margin-top:16px}
 .movie-canvas,.movie-preview{display:block;width:100%;max-width:360px;height:auto;aspect-ratio:9/16;object-fit:contain;margin:18px auto;background:var(--bg);border:1px solid var(--edge-gold);border-radius:12px}
 .movie-result{border-top:1px solid var(--line);padding-top:24px;margin-top:18px}
 .movie-download{border:1px solid var(--line);text-align:center}
+
+.movie-options{padding:20px;background:var(--paper);border:2px solid var(--line);border-radius:16px}.movie-progress progress{border-radius:999px;overflow:hidden}.movie-preview{padding:8px 8px 12px;background:var(--paper);border-radius:8px}

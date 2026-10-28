@@ -1,17 +1,17 @@
 /* plan — module-only styles; shared tokens include dark mode. */
 .plan-page{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));overflow-wrap:anywhere}
 .plan-hero{border-bottom:1px solid var(--line);padding-top:16px;position:relative;overflow:hidden}
-.plan-hero h1{font-size:20px}
-.plan-hero p{font-size:13px;color:var(--muted)}
-.plan-hero .skyline{position:absolute;right:0;top:12px;width:96px;height:40px;opacity:.35}
+.plan-hero h1{font-size:26px}
+.plan-hero p{font-size:14px;color:var(--muted)}
+.plan-hero .skyline{display:block;margin-left:auto;width:160px;height:56px;color:var(--turquoise)}
 .plan-switch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:18px 0}
-.plan-switch button{padding:10px 4px;border:0;border-bottom:1px solid var(--line);background:transparent;font-size:13px}
+.plan-switch button{padding:10px 4px;border:0;border-bottom:1px solid var(--line);background:transparent;font-size:14px}
 .plan-now h2{font-size:18px;margin-bottom:16px}
 .plan-now p{font-size:14px}
 .plan-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
 .plan-actions>*{flex:1 1 120px}
 .plan-dates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:14px}
-.plan-dates button{font-size:13px;padding:8px 4px}
+.plan-dates button{font-size:14px;padding:8px 4px}
 .plan-dates button[aria-pressed=true]{background:var(--green);color:var(--on-accent)}
 .plan-day{padding:16px}
 .plan-day .day-top{flex-wrap:wrap}
@@ -23,7 +23,7 @@
 .plan-stop-body p{margin:4px 0}
 .plan-stop>button{flex-shrink:0;padding:8px;min-width:44px}
 .plan-time{font-size:16px;font-weight:600;color:var(--green)}
-.plan-update{background:var(--soft);border-radius:0;padding:12px;margin-bottom:14px}
+.plan-update{background:var(--soft);border-radius:8px;padding:12px;margin-bottom:14px}
 .plan-editor{overflow-wrap:anywhere;padding-bottom:env(safe-area-inset-bottom,0px)}
 .plan-editor input,.plan-editor textarea,.plan-editor select{font-size:16px}
 .plan-editor .plan-check{width:44px;min-height:44px;vertical-align:middle}
@@ -31,7 +31,11 @@
 .plan-error{color:var(--orange)}
 @media(min-width:500px){.plan-dates{grid-template-columns:repeat(5,minmax(0,1fr))}}
 
-.plan-now{position:relative;isolation:isolate;padding:16px 16px 20px 20px;border:0;margin:18px 0}.plan-now::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--surface);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,4px 100%,0 calc(100% - 4px))}.plan-now::after{content:"";position:absolute;top:0;left:20px;width:40px;border-top:2px solid var(--accent)}.plan-next-time{font:700 40px/1.05 ui-monospace,monospace;color:var(--accent)}.plan-now .plan-next-time{font-size:40px}.plan-next-title{font-size:24px;font-weight:700}.plan-day{padding:0}.plan-dates button{border:0;border-bottom:2px solid var(--divider);border-radius:0;background:transparent}.plan-dates button[aria-pressed=true]{color:var(--accent);background:transparent;border-color:var(--accent)}
+.plan-now{padding:16px;border:2px solid var(--line);border-radius:16px;background:var(--paper);box-shadow:none;margin:18px 0 24px}.plan-next-time,.plan-now .plan-next-time{font-size:32px;line-height:1.2;font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent-text)}.plan-dates button{border-radius:999px;background:var(--paper)}.plan-dates button[aria-pressed=true]{color:var(--on-accent);background:var(--accent);border-color:var(--line)}
 .plan-page>[data-missions-date]{margin:28px 0 32px}
 .plan-page>[data-missions-date]>.caption{margin-top:14px;line-height:1.8}
-.plan-now .plan-next-title{font-size:24px;line-height:1.5;margin:12px 0 20px}
+.plan-now .plan-next-title{font-size:22px;line-height:1.5;margin:12px 0 20px}
+
+.plan-now .state-label{display:inline-block;padding:4px 10px;border:2px solid var(--line);border-radius:999px;background:var(--soft);transform:rotate(1deg)}
+
+.notebook-rest{margin-top:32px;padding:16px 0;border-top:1px dashed var(--divider)}.notebook-rest p{margin:4px 0}.plan-return{padding:16px 0;border-bottom:1px solid var(--divider)}

@@ -1,30 +1,38 @@
-:root{--motion-press:80ms;--motion-fast:120ms;--motion-ui:200ms;--motion-scene:320ms;--ease-out:cubic-bezier(.16,1,.3,1);--ease-in:cubic-bezier(.4,0,1,1);--ease-standard:cubic-bezier(.2,0,0,1);--ease-settle:cubic-bezier(.2,.8,.2,1)}
-@media(prefers-reduced-motion:no-preference){
- button{transition:transform var(--motion-fast) var(--ease-out),background-color var(--motion-fast)}button:active{transform:scale(.99);background-color:var(--surface-raised)}.primary:active{transform:translateY(1px) scale(.975);transition-duration:var(--motion-press)}
- [aria-pressed]:active,nav button:active{transform:none;color:var(--accent)}
- dialog[open]{animation:sheet-in var(--motion-ui) var(--ease-out)}
- .scene-enter{animation:scene-in var(--motion-scene) var(--ease-out)}
- .reward-xp{animation:xp-in 200ms 120ms both var(--ease-out)}.reward-stamp{animation:stamp-in 200ms 720ms both var(--ease-settle)}
- .nav-indicator{transition:transform var(--motion-ui) var(--ease-standard)}
- @keyframes scene-in{from{opacity:.6;transform:translateX(var(--scene-x,24px)) translateY(var(--scene-y,0px)) scale(var(--scene-scale,1))}to{opacity:1;transform:none}}
- @keyframes sheet-in{from{opacity:.5;transform:translateY(24px)}to{opacity:1;transform:none}}
- @keyframes xp-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
- @keyframes stamp-in{0%{opacity:0;transform:scale(.94)}70%{opacity:1;transform:scale(1.03)}100%{transform:scale(1)}}
-}
-.nav-indicator{position:absolute;top:0;left:0;height:2px;background:var(--accent);pointer-events:none}
+:root{--motion-press:100ms;--motion-fast:120ms;--motion-ui:220ms;--motion-scene:2100ms;--ease-press:cubic-bezier(.2,0,.4,1);--ease-release:cubic-bezier(.16,1,.3,1);--ease-pop:cubic-bezier(.2,.8,.25,1.2);--ease-out:var(--ease-release);--ease-in:cubic-bezier(.4,0,1,1)}
+.nav-indicator{position:absolute;top:3px;left:0;width:24px;height:5px;pointer-events:none}.nav-indicator i{display:block;width:100%;height:100%;border-radius:999px;background:var(--accent-text)}
 body.keyboard-open #nav{visibility:hidden;pointer-events:none}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}button:active{transform:none!important}.shell>header>.brand,.shell>header>.header-tools{display:none}.shell>header{min-height:calc(44px + var(--sat))}.travel-hud{border-top:0}}
-::view-transition-old(root),::view-transition-new(root){animation:none}
-/* root の旧画像は旧 main を抜いた領域を含む。透明な新画像と合成しない。 */
-::view-transition-old(root){display:none}
-::view-transition-new(root){mix-blend-mode:normal}
-#main{view-transition-name:scene;background:var(--bg)}
-::view-transition-old(scene),::view-transition-new(scene){mix-blend-mode:normal}
-@keyframes scene-out{to{opacity:0;transform:translateX(var(--scene-exit-x,0px))}}
+button.press-ready{position:relative;isolation:isolate;background:transparent;box-shadow:none;border-color:transparent}
+.press-face{position:absolute;inset:-2px;z-index:-1;background:var(--paper);border:2px solid var(--line);border-radius:inherit;box-shadow:0 2px 0 var(--shadow-color);pointer-events:none}
+.primary>.press-face{background:var(--accent);box-shadow:0 4px 0 var(--shadow-color)}.primary>.press-face::before{content:"";position:absolute;inset:3px;border:1px solid #FFFCF5;border-radius:9px}.primary.press-ready::before{display:none}
+button.press-ready:disabled>.press-face{background:var(--soft)}
 @media(prefers-reduced-motion:no-preference){
- ::view-transition-old(scene){animation:scene-out var(--motion-scene) var(--ease-in) both}
- ::view-transition-new(scene){animation:scene-in var(--motion-scene) var(--ease-out) both}
- .shell>header{transform:translateY(var(--header-shift,0px))}.shell>header>.brand,.shell>header>.header-tools{opacity:var(--header-fade,1)}
+ .press-face{transition:transform 100ms var(--ease-press),box-shadow 120ms}.is-pressed>.press-face{transform:translateY(1px) scale(.97);box-shadow:0 1px 0 var(--shadow-color)}.primary.is-pressed>.press-face{transform:translateY(3px) scale(1.025,.95)}
+ .is-released>.press-face{animation:release 1100ms var(--ease-release)}.primary.is-released>.press-face{animation:primary-release 220ms var(--ease-release)}
+ nav button:active .icon{transform:scale(.94);transition:transform 100ms}nav button.active .icon{animation:tab-pop 240ms var(--ease-release)}
+ .nav-indicator{transition:transform 220ms var(--ease-release)}.nav-indicator i{animation:indicator-pop 220ms var(--ease-release)}
+ dialog[open]{animation:sheet-in 220ms var(--ease-release)}.scene-enter{animation:scene-in 2100ms var(--ease-release)}
+ .fairy-wing-left{transform-origin:34px 59px}.fairy-wing-right{transform-origin:66px 59px}.fairy-working .fairy-wing{animation:wing 240ms 2 alternate}.fairy-working .fairy-wing-right{animation-direction:alternate-reverse}.fairy-saved{animation:fairy-save 3100ms}.fairy-guide:focus-within .fairy-wing{animation:none}
+ .cute-stagger{animation:list-in 180ms var(--ease-release) both;animation-delay:var(--stagger,0ms)}
+ .save-spark{position:fixed;width:5px;height:5px;background:var(--accent);border-radius:1px;pointer-events:none;z-index:95;animation:spark 420ms ease-out forwards}.save-spark:nth-child(even){background:var(--rani);clip-path:polygon(50% 0,65% 35%,100% 50%,65% 65%,50% 100%,35% 65%,0 50%,35% 35%)}
+ @keyframes primary-release{0%{transform:translateY(3px) scale(1.025,.95)}60%{transform:translateY(-1px) scale(.99,1.035)}100%{transform:none}}
+ @keyframes release{0%{transform:translateY(1px) scale(.97)}60%{transform:scale(1.015)}100%{transform:none}}
+ @keyframes tab-pop{0%{transform:scale(1)}45%{transform:scale(1.12)}75%{transform:scale(.98)}100%{transform:none}}
+ @keyframes indicator-pop{35%{transform:scaleX(1.5)}75%{transform:scaleX(.85)}}
+ @keyframes scene-in{0%{opacity:.7;transform:translateX(var(--scene-x,16px)) translateY(var(--scene-y,0px)) scale(.985)}75%{transform:scale(1.008)}100%{opacity:1;transform:none}}
+ @keyframes scene-out{to{opacity:0;transform:translateX(var(--scene-exit-x,-8px))}}
+ @keyframes sheet-in{0%{opacity:.7;transform:translateY(16px)}75%{transform:translateY(-2px)}100%{opacity:1;transform:none}}
+ @keyframes blink{50%{transform:scaleY(.12)}}@keyframes wing{to{transform:rotate(6deg)}}@keyframes fairy-save{45%{transform:translateY(-5px) scale(1.03,.96)}}
+ @keyframes list-in{from{opacity:.65;transform:translateY(6px)}to{opacity:1;transform:none}}
+ @keyframes spark{to{opacity:0;transform:translate(var(--spark-x),var(--spark-y)) rotate(60deg)}}
+ ::view-transition-old(scene){animation:scene-out 100ms var(--ease-in) both}::view-transition-new(scene){animation:scene-in 2100ms var(--ease-release) both}
 }
-::view-transition{pointer-events:none}
-@media(prefers-reduced-motion:no-preference){.reward-level{animation:stamp-in 200ms 520ms both var(--ease-settle)}}
+::view-transition-old(root),::view-transition-new(root){animation:none}::view-transition-old(root){display:none}::view-transition-new(root){mix-blend-mode:normal}#main{view-transition-name:scene;background:var(--bg)}::view-transition-old(scene),::view-transition-new(scene){mix-blend-mode:normal}::view-transition{pointer-events:none}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.press-face,.settings-toggle input::before{animation:none!important}.is-pressed>.press-face{transform:none!important}.save-spark{display:none}}
+@media(prefers-reduced-motion:no-preference){
+ [aria-pressed].is-pressed>span,.mission-row.is-pressed>.mission-check{transform:scale(.97);transition:transform 100ms var(--ease-press)}
+ .onboarding-choice[aria-pressed=true] .onboarding-check{animation:check-in 1100ms var(--ease-pop)}
+ @keyframes check-in{0%{transform:scale(.7)}65%{transform:scale(1.15)}100%{transform:none}}
+}
+
+:root[data-motion="off"] *,:root[data-motion="off"] *::before,:root[data-motion="off"] *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+:root[data-motion="off"] .save-spark{display:none}

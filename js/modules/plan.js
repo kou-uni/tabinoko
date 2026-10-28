@@ -24,10 +24,11 @@
     const nextDay = days.find(x => x.date >= today && x.items.length), item = nextDay && nextDay.items[0];
     const validTrip = T.progress.valid(trip.start) && T.progress.valid(trip.end) && trip.start <= trip.end;
     const phase = !validTrip ? '旅程を確認' : today < trip.start ? '出発まで' + U.daysBetween(today, trip.start) + '日' : today > trip.end ? '旅程終了' : '旅程 ' + (U.daysBetween(trip.start, today) + 1) + '日目';
-    root.innerHTML = '<div class="plan-page"><section class="plan-hero"><h1>ムンバイ / ' + esc(phase) + '</h1><p>' + esc(trip.start) + ' — ' + esc(trip.end) + ' · ' + (validTrip ? U.daysBetween(trip.start, trip.end) + 1 : '—') + '日間の旅</p>' + skyline() + '</section>'
-      + '<section class="plan-now" aria-label="次の予定"><h2>' + (nextDay && nextDay.date === today ? '今日の先頭の予定' : '次の予定') + '</h2>'
+    const resume = T.notebook.resume({now: U.iso(), last: T.notebook.lastVisit, draft: store.draft('note'), next: item && item.title});
+    root.innerHTML = '<div class="plan-page">' + (resume.greeting ? '<p class="plan-return">' + esc(resume.greeting) + '</p><button class="text-btn" data-route="' + resume.route + '">' + esc(resume.next) + '</button>' : '') + '<section class="plan-hero"><h1>旅のしおり</h1><p>ムンバイ / ' + esc(phase) + '</p><p>' + esc(trip.start) + ' — ' + esc(trip.end) + ' · ' + (validTrip ? U.daysBetween(trip.start, trip.end) + 1 : '—') + '日間の旅</p>' + skyline() + '</section>'
+      + '<section class="plan-now" aria-label="次の予定">' + ui.guide(item ? '次は、' + item.title + 'だね' : 'しおりで予定を確かめよう') + '<h2>' + (nextDay && nextDay.date === today ? '今日の先頭の予定' : '次の予定') + '</h2>'
       + (item ? '<p class="state-label">' + esc(U.dayLabel(nextDay.date)) + '</p><p class="' + (/^\d{1,2}:\d{2}$/.test(item.time) ? 'plan-next-time' : 'plan-time') + '">' + esc(item.time || '時刻未設定') + '</p><p class="plan-next-title">' + esc(item.title) + '</p>' : '<p>予定なし</p>')
-      + '<small>便の時刻は各空港の現地時刻。予定は保存順。</small><div class="plan-actions"><button class="primary" data-route="notes" data-params="' + esc(JSON.stringify({date:today})) + '">いま残すこと</button></div></section>'
+      + '<small>便の時刻は各空港の現地時刻。予定は保存順。</small><div class="plan-actions"><button class="primary" data-route="notes" data-params="' + esc(JSON.stringify({date:today})) + '">いまのひとことを残す</button></div></section>'
       + T.gameUI.missions(today < trip.start || today > trip.end ? today : selected || today)
       + '<div class="plan-switch" aria-label="旅の表示"><button id="plan-now">今日</button><button id="plan-future" ' + (!future ? 'disabled' : '') + '>これから</button>' + route('timeline', '思い出') + '</div>'
       + '<h2>旅のしおり</h2>'
@@ -40,7 +41,8 @@
       + '<section id="plan-suggestions" hidden></section>'
       + (store.all('hearing').length ? '<details class="card"><summary>聞かせてくれた旅の話</summary><p class="caption">予定を考えるとき、ここから見返せるよ。</p>' + store.all('hearing').sort((a, b) => String(b.at).localeCompare(String(a.at))).map(x => '<p class="plan-note"><small>' + esc(x.date) + '</small><br>' + esc(x.text) + '</p>').join('') + '</details>' : '')
       + (d && d.items.some(x => x.kind === 'event' && /ETHGlobal/.test(x.title)) ? '<div class="card"><p>ファイナリストとして参加する日。挑戦の気持ちも残せるよ。</p>' + route('post', 'ファイナリストとして参加', { angle: 'finalist', date: d.date }) + '</div>' : '')
-      + route('fairy', '記録係に話す') + '</div>';
+      + route('fairy', 'たびのこと話す') + '<section class="notebook-rest"><button class="text-btn" id="notebook-rest">今日はここまで</button><p id="rest-status" role="status"></p><p>' + esc(resume.next) + '</p><p class="caption">休んでも、残した記録は減りません。</p></section></div>';
+    $('#notebook-rest', root).onclick = async () => { try { await store.flushDrafts(); $('#rest-status', root).textContent = '今日はここまで。' + T.saveUI.label(); } catch (_) { $('#rest-status', root).textContent = '書きかけを保存できませんでした。画面を閉じずに、もう一度試してください。'; } };
     if (d) bus.request('suggest:today', { date: d.date }).then(list => {
       if (mounted !== root || revision !== version) return;
       const el = $('#plan-suggestions', root);

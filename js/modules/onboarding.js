@@ -35,12 +35,12 @@
     function draw() {
       if (!active) return;
       const context = answer || store.all('hearing').slice(-1)[0];
-      root.innerHTML = '<section class="onboarding" data-onboarding aria-busy="false"><div class="onboarding-intro">' + ui.fairy('onboarding-fairy')
+      root.innerHTML = '<section class="onboarding" data-onboarding aria-busy="false"><button type="button" class="text-btn onboarding-sound" data-sound aria-pressed="' + !!store.setting('uiSound') + '">音：' + (store.setting('uiSound') ? 'オン' : 'オフ') + '</button><div class="onboarding-intro">' + ui.fairyAnimated('onboarding-fairy')
         + '<p class="onboarding-step">' + (firstRun ? (phase === 'hearing' ? '旅のはじまり · 1 / 2' : '思い出の残し方 · 2 / 2') : '思い出の残し方') + '</p>'
-        + '<h1>' + (phase === 'hearing' ? 'どんな旅に行くの？' : 'どんな気持ちを残そう？') + '</h1>'
-        + '<p>' + (phase === 'hearing' ? 'ムンバイ夜航ログ。<br>旅で残したいことを、最初のメモに。' : '記録する目的と、届ける相手。<br>複数選択できます。後から変更できます。') + '</p></div>'
+        + '<h1>' + (phase === 'hearing' ? 'どんな旅にしよう？' : 'だれに、何を残す？') + '</h1>'
+        + '<p>' + (phase === 'hearing' ? 'ムンバイの旅のしおり。<br>旅で残したいことを、最初のメモに。' : '記録する目的と、届ける相手。<br>複数選択できます。後から変更できます。') + '</p></div>'
         + (phase === 'hearing'
-          ? '<form data-hearing-form><label for="onboarding-text">旅の楽しみ、ひとことから</label><textarea id="onboarding-text" rows="4" maxlength="2000" aria-describedby="onboarding-input-help onboarding-private" placeholder="石窟の景色も、新しい人との出会いも楽しみ！">' + esc(store.draft('hearing')) + '</textarea><p class="onboarding-help" id="onboarding-input-help">書きかけも残しておくね。声で入れるなら、入力欄を押してキーボードのマイクを使ってね。音声入力には通信が必要な場合があります（OS・端末の設定によります）。</p><p class="onboarding-help" id="onboarding-private">パスポート・ETA・予約番号は書かないでね。</p><button type="submit" class="primary wide" data-send>たびのこに話す ✧</button></form>'
+          ? '<form data-hearing-form><label for="onboarding-text">旅の楽しみ、ひとことから</label><textarea id="onboarding-text" rows="4" maxlength="2000" aria-describedby="onboarding-input-help onboarding-private" placeholder="海沿いの夜景を、写真に残したい">' + esc(store.draft('hearing')) + '</textarea><p class="onboarding-help" id="onboarding-input-help">書きかけも残しておくね。声で入れるなら、入力欄を押してキーボードのマイクを使ってね。音声入力には通信が必要な場合があります（OS・端末の設定によります）。</p><p class="onboarding-help" id="onboarding-private">パスポート・ETA・予約番号は書かないでね。</p><button type="submit" class="primary wide" data-send>たびのこに話す</button></form>'
           : (context ? '<details class="onboarding-story"><summary>聞かせてくれた旅の話</summary><p>' + esc(context.text) + '</p></details>' : '<p class="onboarding-help">旅の話は、あとから妖精に聞かせてね。</p>')
             + '<p class="onboarding-reaction" data-reaction role="status">' + esc(context && context.fairyReply || '') + '</p>'
             + group('purposeIds', M.PURPOSES, 'どんなふうに残したい？（複数選べるよ）')
@@ -55,7 +55,7 @@
       if (!active || busy || phase !== 'hearing' || e.isComposing) return;
       const ta = $('#onboarding-text'), text = ta.value.trim();
       if (!text) { status('ひとことでも聞けたらうれしいな。思いついたら書いてね。'); ta.focus(); return; }
-      lock(true); status('旅の話を端末に残しているよ…');
+      lock(true); status('保存中…');
       try {
         answer = await store.put('hearing', M.make('hearing', { id: U.uid(), text, date: U.todayISO(), source: 'onboarding' }));
         store.setDraft('hearing', '');
@@ -74,9 +74,11 @@
     };
     root.onclick = async (e) => {
       if (!active || busy) return;
+      const sound = e.target.closest('[data-sound]');
+      if (sound) { sound.disabled = true; try { await store.setSetting('uiSound', !store.setting('uiSound')); if (active) { sound.textContent = '音：' + (store.setting('uiSound') ? 'オン' : 'オフ'); sound.setAttribute('aria-pressed', String(!!store.setting('uiSound'))); } } catch (err) { failure(err); } finally { sound.disabled = false; } return; }
       const choice = e.target.closest('[data-choice]'), finish = e.target.closest('[data-finish]');
       if (!choice && !finish) return;
-      lock(true);
+      lock(true); status('保存中…');
       try {
         if (choice) {
           const key = choice.dataset.choice, id = choice.dataset.id;
@@ -87,7 +89,7 @@
           choice.setAttribute('aria-pressed', String(selected[key].includes(id)));
           choice.querySelector('.onboarding-check').textContent = selected[key].includes(id) ? '✓' : '＋';
           await persistChoices();
-          status('この気持ち、覚えたよ。');
+          status(T.saveUI.savedLabel());
         } else {
           // 保存に失敗した選択も、完了ボタンからまとめて再試行する。
           await persistChoices();

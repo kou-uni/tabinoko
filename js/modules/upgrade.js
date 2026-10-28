@@ -8,11 +8,11 @@
       let active = true, busy = false;
       if (route === 'checkout' || route === '/checkout') {
         root.innerHTML = '<section class="upgrade-panel card"><p class="eyebrow">おまとめ</p>'
-          + '<h1>いまは準備中。ほしい気持ちを数えさせてね</h1>'
+          + '<h1>おまとめは、ただいま準備中</h1>' + T.ui.guide('希望を送っても、お支払いは発生しないよ')
           + '<p>高画質の動画と、友達に見せる専用テンプレート。1回300円（税込）を予定しているよ。</p>'
           + '<p>ここはダミー決済画面だよ。お支払いは発生せず、カードや個人情報の入力もないよ。送っても高画質はまだ使えないよ。</p>'
           + '<p class="caption">端末ごとに各段階1日1回まで記録するよ。集計先が設定されている場合は、匿名の希望回数を送るよ。写真やメモは送らないよ。</p>'
-          + '<button class="primary upgrade-send">この気持ちを送る</button>'
+          + '<button class="primary upgrade-send">ほしい気持ちを送る</button>'
           + '<p class="upgrade-status" role="status" aria-live="polite"></p><button data-route="movie">無料のムービーを作る</button>'
           + '<button data-route="upgrade">おまとめに戻る</button></section>';
         const button = root.querySelector('.upgrade-send'), status = root.querySelector('.upgrade-status');
@@ -29,15 +29,15 @@
         button.addEventListener('click', send);
         return () => { active = false; button.removeEventListener('click', send); };
       }
-      root.innerHTML = '<section class="upgrade-panel card">'
-        + '<p class="eyebrow">旅の思い出を、おすそわけ</p><h1>おまとめ</h1>'
+      root.innerHTML = '<section class="upgrade-panel card">' + T.ui.guide('おまとめの提供状況を、ここで確かめられるよ')
+        + '<p class="eyebrow">旅の思い出を、おすそわけ</p><h1>高画質のおまとめ</h1>'
         + '<p>無料でも、一定の低画質で振り返り動画を作れるよ。</p>'
         + '<p>もっとくっきり、友達にも見せたいときに。</p>'
         + '<ul><li>高画質の動画</li><li>友達に見せる専用テンプレート</li><li>透かし無し</li></ul>'
         + '<p>「思い出動画」「学びの記録」のどちらも選べるよ。</p>'
         + '<p class="upgrade-price">300円 <span>（税込）／1回の「おまとめ」購入</span></p>'
         + '<p class="caption">毎月のお支払いはないよ。購入コードを入れると、この端末で何度でも作り直せるよ。</p>'
-        + '<div class="upgrade-purchase"><button class="primary" type="button">300円で購入する</button></div>'
+        + '<div class="upgrade-purchase"><button class="primary" type="button">おまとめの準備状況を見る</button></div>'
         + '<p class="caption">いまは購入の準備中。次の画面で、ほしい気持ちを聞かせてね。お支払いは発生しないよ。</p>'
         + '<form class="upgrade-form"><label for="upgrade-code">メールで届いたライセンスコード</label>'
         + '<textarea id="upgrade-code" maxlength="8192" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="TN1.…" required></textarea>'

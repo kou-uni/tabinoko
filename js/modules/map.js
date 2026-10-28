@@ -62,7 +62,7 @@
     render(root) {
       // #main is reused by router: isConnected alone cannot identify the current render.
       let active = true, map = null, markers = null, loading = false, saving = false, tileFailed = false, tileTimer = null;
-      root.innerHTML = '<div class="map-page">' + ui.heading('OUR TRAVEL FOOTPRINTS', '旅の地図')
+      root.innerHTML = '<div class="map-page">' + ui.heading('OUR TRAVEL FOOTPRINTS', '旅の地図') + ui.guide('行った場所は「今日、行ったよ」で残せるよ')
         + '<p>旅程の場所と、自分で残した訪問記録。</p>'
         + '<p class="caption" id="map-network"></p><p id="map-save-status" role="status" aria-live="polite"></p>'
         + '<div class="map-legend"><span>予定</span><span>訪問を記録済み</span></div>'

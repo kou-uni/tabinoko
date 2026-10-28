@@ -79,7 +79,7 @@
       nav.innerHTML = tabs().map((t) => {
         const on = t.mod.routes.includes(route);
         return '<button data-route="' + esc(t.route) + '" class="' + (on ? 'active' : '') + (t.accent ? ' accent' : '') + '"' + (on ? ' aria-current="page"' : '') + '>' + U_icon(t.icon) + esc(t.label) + '</button>';
-      }).join('') + '<span class="nav-indicator" aria-hidden="true"></span>';
+      }).join('') + '<span class="nav-indicator" aria-hidden="true"><i></i></span>';
       }
       nav.querySelectorAll('button[data-route]').forEach(b => { const active = findMod(b.dataset.route) === mod || (route === 'recap' && b.dataset.route === 'timeline'); b.classList.toggle('active', active); if (active) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
       const active = nav.querySelector('[aria-current]'), indicator = nav.querySelector('.nav-indicator');
@@ -100,16 +100,16 @@
     const requestId = navigation.begin();
     if (scene) { scene.cancel(); scene = null; }
     const apply = () => navigation.isCurrent(requestId) ? renderRoute(route, params, Object.assign({}, opts, { requestId, transition: useTransition })) : undefined;
-    const useTransition = !!current.route && route !== current.route && !opts.keepScroll && document.startViewTransition && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const useTransition = !!current.route && route !== current.route && !opts.keepScroll && document.startViewTransition && T.store.setting('uiMotion') !== false && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const complete = () => navigation.complete(requestId);
     if (!useTransition) return Promise.resolve(apply()).finally(complete);
     const ordered = tabs().map(t => t.route), from = ordered.indexOf(current.route), to = ordered.indexOf(route);
     const direction = opts.back || parents[current.route] === route ? -1 : from >= 0 && to >= 0 ? Math.sign(to - from) : 1;
     const depth = from < 0 || to < 0;
-    document.documentElement.style.setProperty('--scene-x', depth ? '0px' : direction * 24 + 'px');
-    document.documentElement.style.setProperty('--scene-exit-x', depth ? '0px' : direction * -12 + 'px');
+    document.documentElement.style.setProperty('--scene-x', depth ? '0px' : direction * 16 + 'px');
+    document.documentElement.style.setProperty('--scene-exit-x', depth ? '0px' : direction * -8 + 'px');
     document.documentElement.style.setProperty('--scene-y', depth ? direction * 12 + 'px' : '0px');
-    document.documentElement.style.setProperty('--scene-scale', depth ? '.97' : '1');
+    document.documentElement.style.setProperty('--scene-scale', depth ? '.985' : '1');
     let applied = false, result;
     const once = () => { if (!applied) { applied = true; result = apply(); } return result; };
     try {
@@ -158,10 +158,10 @@
       heading.focus({ preventScroll: true });
     }
     if (!navigation.isCurrent(opts.requestId)) return;
-    if (changing && !opts.transition && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      const transform = depth ? 'translateY(' + direction * 12 + 'px) scale(.97)' : 'translateX(' + direction * 24 + 'px)';
-      if (root.animate) scene = root.animate([{ opacity: .6, transform }, { opacity: 1, transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.16,1,.3,1)' });
-      else { root.style.setProperty('--scene-x', depth ? '0px' : direction * 24 + 'px'); root.style.setProperty('--scene-y', depth ? direction * 12 + 'px' : '0px'); root.style.setProperty('--scene-scale', depth ? '.97' : '1'); root.classList.add('scene-enter'); }
+    if (changing && !opts.transition && T.store.setting('uiMotion') !== false && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const transform = depth ? 'translateY(' + direction * 12 + 'px) scale(.985)' : 'translateX(' + direction * 16 + 'px)';
+      if (root.animate) scene = root.animate([{ opacity: .6, transform }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'cubic-bezier(.16,1,.3,1)' });
+      else { root.style.setProperty('--scene-x', depth ? '0px' : direction * 16 + 'px'); root.style.setProperty('--scene-y', depth ? direction * 12 + 'px' : '0px'); root.style.setProperty('--scene-scale', depth ? '.985' : '1'); root.classList.add('scene-enter'); }
     }
     const title = mod.title ? mod.title + ' — たびのこ' : 'たびのこ';
     document.title = title;
@@ -187,7 +187,7 @@
       const compact = () => {
         scrollFrame = 0;
         const header = document.querySelector('.shell>header'); if (!header) return;
-        const fraction = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : Math.min(1, Math.max(0, window.scrollY / 72));
+        const fraction = T.store.setting('uiMotion') === false || window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : Math.min(1, Math.max(0, window.scrollY / 72));
         header.style.setProperty('--header-shift', (-44 * fraction) + 'px');
         header.style.setProperty('--header-fade', String(1 - fraction));
       };

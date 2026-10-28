@@ -2,19 +2,19 @@
 .map-page{padding-bottom:env(safe-area-inset-bottom,0px);overflow-wrap:anywhere}
 .map-page h2{font-size:18px;margin-top:24px}
 .map-legend{display:flex;flex-wrap:wrap;gap:12px;color:var(--ink)}
-.map-spot{border:0;border-left:1px solid var(--line);border-radius:0;padding:8px 0 14px 16px;margin:8px 0;background:transparent}
+.map-spot{border:0;border-left:1px solid var(--line);border-radius:8px;padding:8px 0 14px 16px;margin:8px 0;background:transparent}
 .map-spot.map-visited{border-left-color:var(--orange)}
-.map-badge{display:inline-block;color:var(--green);font-size:13px;margin-bottom:8px}
+.map-badge{display:inline-block;color:var(--green);font-size:14px;margin-bottom:8px}
 .map-visited .map-badge{color:var(--orange)}
 .map-spot h3{font-size:17px;margin:0}
 .map-spot p{margin:8px 0}
-.map-date{font-size:13px;color:var(--muted)}
+.map-date{font-size:14px;color:var(--muted)}
 .map-note{white-space:pre-wrap}
 .map-links{display:flex;flex-wrap:wrap;gap:4px 8px;margin:8px 0}
 .map-links a{min-height:44px;min-width:44px;padding:10px 0;font-size:14px;text-align:left;justify-content:flex-start}
 .map-spot button,.map-optional button{min-height:44px;min-width:44px;max-width:100%}
 .map-optional{margin-top:24px}
-.map-panel{height:320px;height:min(55dvh,380px);min-height:280px;background:var(--soft);border-radius:0;overflow:hidden;position:relative;isolation:isolate;text-align:left}
+.map-panel{height:320px;height:min(55dvh,380px);min-height:280px;background:var(--soft);border-radius:8px;overflow:hidden;position:relative;isolation:isolate;text-align:left}
 .map-panel.leaflet-container{font:14px/1.5 -apple-system,BlinkMacSystemFont,sans-serif}
 .map-panel .leaflet-control-zoom a{min-width:44px;min-height:44px;line-height:44px}
 .map-panel .leaflet-control-attribution a{min-height:44px;min-width:44px;padding:4px;align-items:center}
@@ -28,6 +28,8 @@
 .map-panel .leaflet-tile-pane{filter:var(--map-filter)}
 .map-panel .leaflet-popup-content-wrapper,.map-panel .leaflet-popup-tip,.map-panel .leaflet-control{background:var(--paper);color:var(--ink)}
 .map-panel .leaflet-control a{background:var(--paper);color:var(--cyan)}
-.map-page h2 small,.map-badge{display:inline-block;padding:4px 9px;border:1px solid var(--edge-gold);border-radius:8px;background:var(--peach);color:var(--gold);font:13px/1.7 ui-monospace,monospace}
+.map-page h2 small,.map-badge{display:inline-block;padding:4px 9px;border:1px solid var(--edge-gold);border-radius:8px;background:var(--peach);color:var(--gold);font:13px/1.7 ui-rounded,"Hiragino Maru Gothic ProN","Yu Gothic",system-ui,sans-serif}
 
 .map-spot summary{display:flex;align-items:center;gap:8px;flex-wrap:wrap;cursor:pointer}.map-spot[open]{background:var(--surface);padding:16px;border-left:2px solid var(--accent)}.map-spot summary h3{flex:1;min-width:120px}.map-badge{border:0;background:transparent;padding:0}.map-visited{border-left:3px solid var(--accent)}
+
+.map-spot{border:0;border-bottom:1px solid var(--divider);padding:8px 0 16px}.map-spot summary{min-height:48px}.map-spot summary::before{content:"";width:28px;height:28px;flex:none;border:2px solid var(--turquoise);border-radius:999px}.map-visited summary::before{content:"✓";background:var(--turquoise);color:var(--paper);text-align:center}.map-spot[open]{border:2px solid var(--line);border-radius:16px}.map-marker span{background:var(--paper);color:var(--turquoise);border-color:var(--turquoise)}.map-marker-visited span{background:var(--turquoise);color:var(--paper);border-radius:999px}

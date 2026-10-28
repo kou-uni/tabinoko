@@ -31,9 +31,8 @@
     const alive = (version) => active && root.isConnected && version === revision;
     function paint() {
       const version = ++revision, groups = chapters(variant);
-      root.innerHTML = '<div class="recap-view">' + ui.heading('', '旅の到達記録') + '<div data-game-summary>' + T.gameUI.summary() + '</div>'
+      root.innerHTML = '<div class="recap-view">' + ui.heading('', '旅のアルバム')
         + '<button class="text-btn" data-route="timeline">← あしあとへ戻る</button>'
-        + '<button class="primary" data-route="movie" data-params="' + esc(JSON.stringify({ variant })) + '">ムービーを作る</button>'
         + '<div class="recap-variants" role="group" aria-label="振り返りの見せ方">'
         + ['memory', 'learning'].map((v) => '<button data-recap-variant="' + v + '" aria-pressed="' + (variant === v) + '">' + (v === 'memory' ? '思い出' : '学びの記録') + '</button>').join('') + '</div>'
         + '<p class="recap-guide">' + (variant === 'memory' ? '写真から、あの日へ。下へめくって見返そう。' : '「学び」の目的で残した投稿、メモ、ほかの言葉の順に。あなたの言葉をそのまま見返そう。') + '</p>'
@@ -50,16 +49,18 @@
               return '<article class="recap-slide"><p class="recap-kind">' + (entry.kind === 'notes' ? '残したメモ' : entry.kind === 'photos' ? '旅の写真' : (entry.purposeIds || []).includes('learn') ? '学びの投稿' : '残した投稿') + '</p>'
                 + (variant === 'learning' ? text + images : images + text) + '</article>';
             }).join('') + '</section>';
-        }).join('') : '<section class="recap-empty"><h2>旅の記録 0</h2><p>メモ・写真を残す。</p><button data-route="post">最初のひとことを残す</button><button data-route="timeline">写真を残す</button></section>') + '</div>'
+        }).join('') : '<section class="recap-empty"><h2>写真やことばが、ここに並ぶよ</h2><button data-route="post">最初のひとことを残す</button><button class="primary" data-route="timeline">写真を残す</button></section>') + '</div>'
+        + '<button class="wide" data-route="movie" data-params="' + esc(JSON.stringify({ variant })) + '">ムービーを作る</button>'
+        + '<div data-game-summary>' + T.gameUI.summary() + '</div>'
         + '<section class="recap-hd"><h2>友達に見せる高画質版</h2><p>おまとめは1回300円（税込）。高画質の動画と、友達に見せる専用テンプレートだよ。</p>'
-        + '<button data-route="upgrade">おまとめを見る</button></section></div>';
+        + '<button data-route="upgrade">おまとめの準備状況を見る</button></section></div>';
       ui.hydratePhotos(root);
       bus.emit('recap:opened', { variant });
       // 妖精の応答でアルバムの初期表示を待たせない。共有 root は遷移後も接続されたまま。
       bus.request('fairy:compose', { kind: 'recap-open', variant, text: groups.flatMap((g) => g.entries).find((e) => e.text)?.text || '' }).then((line) => {
         if (!alive(version) || !line) return;
         const greeting = root.querySelector('.recap-greeting');
-        if (greeting) greeting.innerHTML = ui.fairy('fairy-large') + '<p>' + esc(line) + '</p>';
+        if (greeting) greeting.innerHTML = ui.fairyAnimated('fairy-large') + '<p>' + esc(line) + '</p>';
       }).catch(() => {});
     }
     async function click(event) {

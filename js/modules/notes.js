@@ -3,11 +3,11 @@
   'use strict';
   const T = window.Tabi, U = T.util, ui = T.ui, esc = U.esc, store = T.store;
   const $ = (s, r) => r.querySelector(s);
-  const entryHTML = (n) => '<article class="card entry notes-entry">'
+  const entryHTML = (n) => '<article class="card entry notes-entry" tabindex="-1" data-note-id="' + esc(n.id) + '">'
     + (n.photoIds || []).map((id) => '<img data-photo-id="' + esc(id) + '" alt="旅の写真" loading="lazy">').join('')
     + '<p>' + esc(n.text) + '</p><div class="notes-meta">メモ · ' + esc(U.dayLabel(n.date)) + '</div>'
     + '<div class="notes-actions"><button type="button" data-toggle-note="' + esc(n.id) + '" aria-pressed="' + (n.showInTimeline !== false) + '">'
-    + (n.showInTimeline !== false ? '思い出に表示中' : 'メモだけに保存中') + '</button>'
+    + (n.showInTimeline !== false ? '思い出に表示中' : 'メモだけに表示') + '</button>'
     + '<button type="button" class="text-btn" data-delete-note="' + esc(n.id) + '">削除</button></div></article>';
 
   function render(root, params = {}) {
@@ -22,7 +22,7 @@
       + '<button id="memo-save" type="submit" class="primary wide">メモを保存</button></form>'
       + '<p class="notes-help">この端末だけに保存するよ。メモを外に送ることはないよ。回線がなくても書き留められるよ。</p>'
       + '<p id="notes-status" role="status" aria-live="polite"></p>'
-      + '<div class="section-label"><h2>ポケットの中</h2></div><div id="notes-list"></div></section>';
+      + '<div class="section-label"><h2>ポケットの中</h2></div><div id="notes-list"></div><div class="notebook-rest"><button class="text-btn" data-route="plan">今日はここまで</button><p class="caption">次はここから：しおりで次の予定を確認</p></div></section>';
     const ta = $('#memo-text', root), form = $('#memo-form', root), submit = $('#memo-save', root);
     const status = (text) => { if (active) $('#notes-status', root).textContent = text; };
     const list = () => {
@@ -33,6 +33,7 @@
     };
     ui.bindDraft(ta, 'note');
     list();
+    if (params.record) { const record = [...root.querySelectorAll('[data-note-id]')].find(el => el.dataset.noteId === params.record); if (record) { record.scrollIntoView({block:'center'}); record.focus({preventScroll:true}); } }
     form.onsubmit = async (e) => {
       e.preventDefault();
       if (!active || saving) return;
@@ -49,7 +50,7 @@
         T.bus.emit('note:saved', { note });
         if (active) {
           if (ta.value === raw) ta.value = '';
-          list(); status('メモを保存');
+          list(); status(T.saveUI.savedLabel() + '。メモを1件保存しました。');
         }
       } catch (err) {
         status('まだ保存できていないよ。書いた言葉はこの欄に残してあるよ。端末の空き容量を確かめて、もう一度しまってみてね。');
