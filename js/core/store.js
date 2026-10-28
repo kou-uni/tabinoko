@@ -357,6 +357,8 @@
       draftDirty = false;
       M.TABLES.forEach((t) => cache.tables[t].clear());
       release();
+      if (T.license) { await T.license.init(); T.license.clear(); }
+      if (T.tapCounter) await T.tapCounter.clear();
       if (!opts || !opts.silent) { bus.emit('store:changed', { coll: '*', id: '*', op: 'wipe' }); bus.emit('backup:done', { kind: 'wipe' }); }
     },
     async usage() {

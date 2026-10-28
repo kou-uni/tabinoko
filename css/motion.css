@@ -1,0 +1,30 @@
+:root{--motion-press:80ms;--motion-fast:120ms;--motion-ui:200ms;--motion-scene:320ms;--ease-out:cubic-bezier(.16,1,.3,1);--ease-in:cubic-bezier(.4,0,1,1);--ease-standard:cubic-bezier(.2,0,0,1);--ease-settle:cubic-bezier(.2,.8,.2,1)}
+@media(prefers-reduced-motion:no-preference){
+ button{transition:transform var(--motion-fast) var(--ease-out),background-color var(--motion-fast)}button:active{transform:scale(.99);background-color:var(--surface-raised)}.primary:active{transform:translateY(1px) scale(.975);transition-duration:var(--motion-press)}
+ [aria-pressed]:active,nav button:active{transform:none;color:var(--accent)}
+ dialog[open]{animation:sheet-in var(--motion-ui) var(--ease-out)}
+ .scene-enter{animation:scene-in var(--motion-scene) var(--ease-out)}
+ .reward-xp{animation:xp-in 200ms 120ms both var(--ease-out)}.reward-stamp{animation:stamp-in 200ms 720ms both var(--ease-settle)}
+ .nav-indicator{transition:transform var(--motion-ui) var(--ease-standard)}
+ @keyframes scene-in{from{opacity:.6;transform:translateX(var(--scene-x,24px)) translateY(var(--scene-y,0px)) scale(var(--scene-scale,1))}to{opacity:1;transform:none}}
+ @keyframes sheet-in{from{opacity:.5;transform:translateY(24px)}to{opacity:1;transform:none}}
+ @keyframes xp-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+ @keyframes stamp-in{0%{opacity:0;transform:scale(.94)}70%{opacity:1;transform:scale(1.03)}100%{transform:scale(1)}}
+}
+.nav-indicator{position:absolute;top:0;left:0;height:2px;background:var(--accent);pointer-events:none}
+body.keyboard-open #nav{visibility:hidden;pointer-events:none}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}button:active{transform:none!important}.shell>header>.brand,.shell>header>.header-tools{display:none}.shell>header{min-height:calc(44px + var(--sat))}.travel-hud{border-top:0}}
+::view-transition-old(root),::view-transition-new(root){animation:none}
+/* root の旧画像は旧 main を抜いた領域を含む。透明な新画像と合成しない。 */
+::view-transition-old(root){display:none}
+::view-transition-new(root){mix-blend-mode:normal}
+#main{view-transition-name:scene;background:var(--bg)}
+::view-transition-old(scene),::view-transition-new(scene){mix-blend-mode:normal}
+@keyframes scene-out{to{opacity:0;transform:translateX(var(--scene-exit-x,0px))}}
+@media(prefers-reduced-motion:no-preference){
+ ::view-transition-old(scene){animation:scene-out var(--motion-scene) var(--ease-in) both}
+ ::view-transition-new(scene){animation:scene-in var(--motion-scene) var(--ease-out) both}
+ .shell>header{transform:translateY(var(--header-shift,0px))}.shell>header>.brand,.shell>header>.header-tools{opacity:var(--header-fade,1)}
+}
+::view-transition{pointer-events:none}
+@media(prefers-reduced-motion:no-preference){.reward-level{animation:stamp-in 200ms 520ms both var(--ease-settle)}}

@@ -1,0 +1,11 @@
+.upgrade-panel{margin-top:24px;border-color:var(--edge-gold);box-shadow:var(--glow)}
+.upgrade-panel h1{color:var(--gold)}
+.upgrade-panel ul{padding-left:24px;line-height:2}
+.upgrade-price{font-size:28px;color:var(--gold)}
+.upgrade-price span{font-size:16px;color:var(--ink)}
+.upgrade-form{display:grid;gap:12px}
+.upgrade-form label{margin-bottom:0}
+.upgrade-form textarea{font-size:16px;min-height:112px;overflow-wrap:anywhere}
+.upgrade-panel button,.upgrade-panel a{min-height:44px}
+.upgrade-purchase a,.upgrade-purchase button{width:100%;white-space:normal;text-align:center}
+.upgrade-status{min-height:1.6em;margin-top:16px;color:var(--cyan)}

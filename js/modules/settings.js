@@ -24,9 +24,12 @@
       const coach = document.createElement('div'); coach.className = 'settings-coach'; slot.appendChild(coach);
       const nudge = document.createElement('div'); nudge.className = 'settings-coach'; slot.appendChild(nudge);
       const sync = () => {
-        line.textContent = U.isOnline() ? '' : 'オフライン。書き留められます。地図や投稿先を開くには回線が必要です。';
-        coach.innerHTML = U.isIOS() && !U.isStandalone() && !store.setting('installCoachDismissedAt') ? '<p>旅のお供をホーム画面へ。</p><button data-route="settings">追加の手順を見る</button><button data-dismiss-install>あとで</button>' : '';
-        nudge.innerHTML = backupDue() ? '<p>旅の記録が増えました。写真ごとバックアップを残しませんか。</p><button data-route="settings">バックアップへ</button><button data-dismiss-backup>あとで</button>' : '';
+        line.textContent = U.isOnline() ? '' : 'オフライン · 外部の地図・投稿先には接続が必要';
+        coach.innerHTML = '';
+        nudge.innerHTML = '';
+        const settingsButton = document.querySelector('.header-tools [data-route="settings"]');
+        if (settingsButton) { settingsButton.dataset.backupDue = String(backupDue()); settingsButton.setAttribute('aria-label', backupDue() ? '設定・バックアップ未確認' : '設定を開く'); }
+
       };
       slot.addEventListener('click', async (e) => {
         try {
@@ -41,18 +44,30 @@
       const release = () => { if (exportUrl) URL.revokeObjectURL(exportUrl); exportUrl = null; prepared = null; };
       const view = async () => {
         const rev = ++revision, us = await store.usage();
+        const counts = await T.tapCounter.counts().catch(() => null);
         if (!active || rev !== revision) return;
         const st = store.photos.stats(), s = store.doc('settings');
         root.innerHTML = ui.heading('SETTINGS', '設定とバックアップ')
           + '<div class="card"><h3>この端末の思い出</h3><p class="caption">投稿案 ' + store.count('posts') + ' ／ メモ ' + store.count('notes') + ' ／ 写真 ' + st.count + '枚（' + mb(st.bytes) + '）' + (us.usage != null ? '<br>使用容量 ' + mb(us.usage) : '') + '</p><p class="caption">記録は端末内に保存します。地図・投稿先・共有先を開いた時は外部サービスを使います。キーボード音声入力の通信は OS の設定によります。パスポート・ETA・予約番号は書かないでください。</p>'
           + (store.degraded ? '<p role="status">' + esc(store.degraded) + '</p>' : '')
           + '<button class="wide" data-route="purposes">旅の目的・見せたい相手を変える</button></div>'
-          + '<div class="card"><h3>旅先でも開けるように</h3><p id="settings-pwa" role="status">' + esc(pwaText()) + '</p>' + (U.isStandalone() ? '<p>ホーム画面から開いています。</p>' : installHelp)
-          + '<ol><li>ホーム画面のアイコンから、回線のある場所で開く</li><li>準備完了後、機内モードで開き直し、メモを残してみる</li><li>回線を戻し、写真つきバックアップを保存する</li></ol></div>'
+          + '<details class="card"><summary>オフライン起動・ホーム画面への追加</summary><h3>旅先でも開けるように</h3><p id="settings-pwa" role="status">' + esc(pwaText()) + '</p>' + (U.isStandalone() ? '<p>ホーム画面から開いています。</p>' : installHelp)
+          + '<ol><li>ホーム画面のアイコンから、回線のある場所で開く</li><li>準備完了後、機内モードで開き直し、メモを残してみる</li><li>回線を戻し、写真つきバックアップを保存する</li></ol></details>'
           + '<div class="card"><h3>バックアップ</h3><p class="caption">最後に保存を確認: ' + (s.lastBackupAt ? esc(new Date(s.lastBackupAt).toLocaleString('ja-JP')) : 'まだありません') + '</p><p class="caption">写真・書きかけを含む JSON です。「ファイルに保存」で保存先を選び、保存されたことを確認してください。共有先に選んだアプリやクラウドには記録が渡ります。</p><button class="primary wide" id="export">書き出す（写真つき）</button><div id="settings-export"></div><div class="spacer"></div><button type="button" class="wide" id="import-backup">バックアップを読み込む</button><input id="import-file" type="file" accept="application/json,.json" hidden><p class="caption">読み込みは今の記録に結合します。編集した旅程を初期旅程より優先し、同じ記録は更新日時の新しい方を残します。</p><button class="wide" id="persist">消えにくい保存をお願いする</button><p class="caption">' + (us.persisted === true ? 'ブラウザが永続保存を許可しています。' : '永続保存はブラウザが判断します。') + ' 許可されても、端末故障やデータ消去には備えてバックアップを。</p></div>'
+          + '<section class="card"><h3>表示と操作</h3><label for="ui-theme">表示テーマ</label><select id="ui-theme">' + [['dark','ダーク'],['light','ライト'],['auto','端末に合わせる']].map(([v,label]) => '<option value="' + v + '" ' + ((s.uiTheme || 'dark') === v ? 'selected' : '') + '>' + label + '</option>').join('') + '</select><label class="settings-toggle"><input type="checkbox" id="ui-haptics" ' + (s.uiHaptics ? 'checked' : '') + '>触覚フィードバック（対応端末のみ）</label><label class="settings-toggle"><input type="checkbox" id="ui-sound" ' + (s.uiSound ? 'checked' : '') + '>保存の効果音</label><p class="caption">動きを減らす設定では演出・振動を停止します。</p></section>'
           + (T.unlock && T.unlock.sealed ? '<div class="card"><h3>この端末のロック</h3><p>今は鍵を覚えているよ。掛けなおすと、次は合言葉で開けるよ。</p><button class="wide" id="relock">この端末のロックを掛けなおす</button></div>' : '')
-          + '<div class="card"><h3>全部消す</h3><p class="caption">この版の記録・写真・設定を消します。読み込み元の旧版や、書き出したファイルは残ります。初期の旅程は戻ります。</p><button class="wide" id="wipe">すべて消去…</button></div>';
+          + '<div class="card"><button class="wide" data-route="upgrade">おまとめ（高画質）</button><button class="wide" data-route="/about">このアプリについて</button><p class="caption">この端末のほしい気持ち: ①' + (counts ? counts[1] : '—') + ' ②' + (counts ? counts[2] : '—') + '</p><p class="caption">①購入への興味 ②購入したい気持ち。各段階1日1回まで。集計先が設定されている場合は匿名の回数のみ送るよ。</p></div>'
+          + '<div class="card"><h3>全部消す</h3><p class="caption">この版の記録・写真・設定・ライセンス・この端末の希望回数を消します。読み込み元の旧版や、書き出したファイルは残ります。初期の旅程は戻ります。</p><button class="wide" id="wipe">すべて消去…</button></div>';
       };
+      const displayChange = async e => {
+        const key = { 'ui-theme': 'uiTheme', 'ui-haptics': 'uiHaptics', 'ui-sound': 'uiSound' }[e.target.id];
+        if (!key || busy) return;
+        busy = true; e.target.disabled = true;
+        try { await store.setSetting(key, key === 'uiTheme' ? e.target.value : e.target.checked); if (key === 'uiTheme') document.documentElement.dataset.theme = e.target.value; }
+        catch (err) { ui.toast('設定を保存できませんでした。'); }
+        finally { busy = false; if (active) e.target.disabled = false; }
+      };
+      root.addEventListener('change', displayChange);
       const exportControls = (message) => {
         if (!active) return;
         $('#settings-export', root).innerHTML = '<p role="status">' + esc(message) + '</p><button class="wide" id="share-backup">共有してファイルに保存</button><a class="file-label" href="' + exportUrl + '" download="' + prepared.name + '">ダウンロードして保存</a><p class="caption">保存したファイルがあることを確かめてから押してください。</p><button class="wide" id="backup-confirm">ファイルの保存を確認した</button>';
@@ -82,7 +97,7 @@
             await store.setSetting('lastBackupAt', U.iso()); bus.emit('backup:done', { kind: 'export' }); release(); await view(); ui.toast('バックアップの保存を記録しました。');
           } else if (b.id === 'persist') {
             const ok = await store.persist(); await store.setSetting('persistAsked', true); ui.toast(ok ? '消えにくい保存が許可されました。バックアップも残してね。' : '許可されないか、未対応です。バックアップを残してね。'); release(); await view();
-          } else if (b.id === 'wipe' && await ui.confirm({ title: '本当にすべて消しますか？', body: 'この版の記録・写真・設定を消します。元に戻せません。バックアップを保存したか確かめてください。', ok: '消去する' })) {
+          } else if (b.id === 'wipe' && await ui.confirm({ title: '本当にすべて消しますか？', body: 'この版の記録・写真・設定・ライセンス・この端末の希望回数を消します。元に戻せません。バックアップを保存したか確かめてください。', ok: '消去する' })) {
             await store.wipe(); await T.data.syncSeed(store); if (active) T.router.go('welcome');
           }
         } catch (err) { ui.toast(err.userMessage || err.message); }
@@ -101,7 +116,7 @@
       const off = bus.on('pwa:changed', () => { const el = $('#settings-pwa', root); if (active && el) el.textContent = pwaText(); });
       view().catch((err) => ui.toast(err.message));
       root.addEventListener('click', onClick); root.addEventListener('change', onChange);
-      return () => { active = false; release(); off(); root.removeEventListener('click', onClick); root.removeEventListener('change', onChange); };
+      return () => { root.removeEventListener('change', displayChange); active = false; release(); off(); root.removeEventListener('click', onClick); root.removeEventListener('change', onChange); };
     },
   });
 })();

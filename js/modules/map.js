@@ -34,12 +34,12 @@
 
   function card(s) {
     const dates = s.visit ? esc(s.date) + ' に行ったよ' : '予定：' + s.dates.map(esc).join('・');
-    return '<article class="map-spot ' + (s.visit ? 'map-visited' : 'map-planned') + '"><span class="map-badge">' + (s.visit ? '✓ 行った場所' : '○ 予定の場所') + '</span>'
-      + '<h3>' + esc(s.name) + '</h3><p class="map-date">' + dates + '</p>'
+    return '<details class="map-spot ' + (s.visit ? 'map-visited' : 'map-planned') + '"><summary><span class="map-badge">' + (s.visit ? '訪問を記録済み' : '予定') + '</span>'
+      + '<h3>' + esc(s.name) + '</h3></summary><p class="map-date">' + dates + '</p>'
       + (s.note ? '<p class="map-note">' + esc(s.note) + '</p>' : '')
       + '<p class="caption">' + (coordinates(s) ? s.lat.toFixed(4) + ', ' + s.lng.toFixed(4) : '位置はまだ未設定。地図アプリで名前から探せるよ。') + '</p>'
       + links(s) + (s.visit ? '<button data-map-undo="' + esc(s.id) + '" aria-label="' + esc(s.name + 'の足跡を取り消す') + '">足跡を取り消す</button>'
-        : '<button class="primary" data-map-visit="' + esc(s.id) + '" aria-label="' + esc(s.name + 'に今日行ったと記録する') + '">今日、行ったよ ✓</button>') + '</article>';
+        : '<button data-map-visit="' + esc(s.id) + '" aria-label="' + esc(s.name + 'に今日行ったと記録する') + '">この場所への訪問を記録</button>') + '</details>';
   }
 
   function ensureLeaflet() {
@@ -63,9 +63,9 @@
       // #main is reused by router: isConnected alone cannot identify the current render.
       let active = true, map = null, markers = null, loading = false, saving = false, tileFailed = false, tileTimer = null;
       root.innerHTML = '<div class="map-page">' + ui.heading('OUR TRAVEL FOOTPRINTS', '旅の地図')
-        + '<p>これから出会う場所も、出会えた場所も。いっしょに旅の足跡を残そう。</p>'
+        + '<p>旅程の場所と、自分で残した訪問記録。</p>'
         + '<p class="caption" id="map-network"></p><p id="map-save-status" role="status" aria-live="polite"></p>'
-        + '<div class="map-legend"><span>○ 予定の場所</span><span>✓ 行った場所</span></div>'
+        + '<div class="map-legend"><span>予定</span><span>訪問を記録済み</span></div>'
         + '<div id="map-lists"></div><section class="map-optional" aria-label="オンライン地図">'
         + '<button id="load-map" class="wide">オンライン地図を開く</button>'
         + '<p id="map-status" class="caption" role="status">地図画像と地図アプリは回線が必要だよ。一覧と足跡は、この端末で見返せるよ。</p>'
@@ -85,7 +85,7 @@
           if (!coordinates(s)) return;
           const point = [s.lat, s.lng]; points.push(point);
           const popup = document.createElement('div');
-          popup.innerHTML = '<strong>' + esc(s.name) + '</strong><p>' + (s.visit ? '✓ 行った場所' : '○ 予定の場所') + '</p>' + links(s);
+          popup.innerHTML = '<strong>' + esc(s.name) + '</strong><p>' + (s.visit ? '訪問を記録済み' : '予定') + '</p>' + links(s);
           window.L.marker(point, { title: s.name + (s.visit ? '（行った場所）' : '（予定）'), icon: window.L.divIcon({
             className: 'map-marker ' + (s.visit ? 'map-marker-visited' : 'map-marker-planned'), html: '<span>' + (s.visit ? '✓' : '○') + '</span>', iconSize: [44, 44], iconAnchor: [22, 22],
           }) }).addTo(markers).bindPopup(popup);
@@ -101,7 +101,7 @@
         $('#map-lists').innerHTML = '<section aria-labelledby="map-planned-title"><h2 id="map-planned-title">これからの場所 <small>' + group.planned.length + 'か所</small></h2>'
           + (group.planned.map(card).join('') || '<p class="empty">これからの場所はまだないよ。しおりで場所つきの予定を選ぶと、ここにも並ぶよ。</p>')
           + '</section><section aria-labelledby="map-visited-title"><h2 id="map-visited-title">行った場所 <small>' + group.visits.length + '件</small></h2>'
-          + (group.visits.map(card).join('') || '<p class="empty">足跡はこれから。出会えた場所を、一緒に増やしていこう。</p>') + '</section>';
+          + (group.visits.map(card).join('') || '<p class="empty">訪問記録 0件。場所を開いて訪問を記録。</p>') + '</section>';
         drawMarkers(false);
       };
       async function loadMap() {
@@ -144,11 +144,11 @@
         try {
           if (spotId) {
             const s = data.spot(spotId);
-            if (!s || store.all('visits').some((v) => v.spotId === spotId)) return;
-            const visit = await store.put('visits', T.model.make('visits', { id: U.uid(), date: U.todayISO(), at: U.iso(), spotId, title: s.name,
-              lat: coordinates(s) ? s.lat : null, lng: coordinates(s) ? s.lng : null }));
+            if (!s || store.all('visits').some((v) => v.spotId === spotId && v.date === U.todayISO())) return;
+            const visit = await T.feedback.run(() => store.put('visits', T.model.make('visits', { id: U.uid(), date: U.todayISO(), at: U.iso(), spotId, title: s.name,
+              lat: coordinates(s) ? s.lat : null, lng: coordinates(s) ? s.lng : null })));
             T.bus.emit('visit:added', { visit });
-          } else if (store.get('visits', visitId)) await store.remove('visits', visitId);
+          } else if (store.get('visits', visitId)) await T.feedback.run(() => store.remove('visits', visitId));
           if (active) {
             refresh(); saveStatus.textContent = spotId ? '足跡を残したよ。思い出がひとつ増えたね。' : 'この足跡を取り消したよ。';
             // Keep keyboard/VoiceOver focus near the changed place after replacing its card.

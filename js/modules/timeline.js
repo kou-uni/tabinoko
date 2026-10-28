@@ -27,13 +27,14 @@
     const list = entries(), days = store.all('days').sort((a, b) => a.date.localeCompare(b.date));
     const dates = [...new Set([...days.map((d) => d.date), ...list.map((e) => e.date)])].sort();
     root.innerHTML = '<div class="timeline-page">' + ui.heading('COLLECTING MEMORIES', '旅のあしあと', '<span class="badge">' + list.length + ' の思い出</span>')
-      + '<p class="muted">小さな瞬間も、一緒に見返せたらうれしいな。</p><p class="caption">回線がなくても、この端末に思い出を残せるよ。時刻は端末の設定で表示するね。</p>'
+      + '<p class="timeline-count">記録 <strong>' + new Set(list.map(e => e.date)).size + '</strong>日 · ' + list.length + '件</p>'
+      + '<p class="muted">写真とことばを、日付からたどる。</p><p class="caption">回線がなくても、この端末に思い出を残せるよ。時刻は端末の設定で表示するね。</p>'
       + '<button data-route="recap">旅を振り返る ↗</button>'
-      + (!list.length ? '<p class="empty">まだ空っぽ。見つけた景色やひとことを、下のボタンから一緒に残そう。</p>' : '')
+      + (!list.length ? '<p class="empty">記録 0件。メモ・写真を残す。</p>' : '')
       + '<div class="timeline">' + dates.map((date) => {
         const i = days.findIndex((d) => d.date === date);
         return '<section class="timeline-day"><h2>' + (i < 0 ? '旅の前後' : '<em>' + (i + 1) + '</em>日目') + ' <small>' + esc(U.dayLabel(date)) + '</small></h2>'
-          + (list.filter((e) => e.date === date).map(entryHTML).join('') || '<div class="empty">この日の思い出は、これから。✧</div>') + '</section>';
+          + (list.filter((e) => e.date === date).map(entryHTML).join('') || '<p class="timeline-blank">未記録</p>') + '</section>';
       }).join('') + '</div><div class="timeline-add"><button class="primary" id="add-memory">＋ メモ・写真を残す</button></div></div>';
     ui.hydratePhotos(root);
   }
@@ -41,7 +42,7 @@
     let busy = false, closed = false;
     const now = U.iso();
     const spots = T.data.spots();
-    const dlg = ui.dialog({ title: existing ? '思い出を整える' : '思い出をひとつ', onClose: () => { closed = true; }, body: '<form id="memory-form" class="timeline-form"><label for="memory-text">ひとこと（写真だけでもOK）</label><textarea id="memory-text" maxlength="5000" placeholder="ここに来られて、よかった。">' + esc(existing ? existing.text : '') + '</textarea><p class="caption">パスポート・ETA・予約番号は書かないでね。写真にも写っていないか見てね。</p><label for="memory-photo">写真を' + (existing ? '追加する' : '選ぶ') + '</label><input id="memory-photo" type="file" accept="image/*"><p class="caption">写真は縮小して、この端末だけに保存するよ。' + (existing && existing.photoIds.length ? '保存済みの写真はそのまま残るよ。' : '') + '</p><label for="memory-date">記録する日</label><input id="memory-date" type="date" required value="' + esc(existing ? existing.date : U.todayISO()) + '"><label for="memory-time">時刻（端末の時刻）</label><input id="memory-time" type="time" required value="' + esc(time(existing ? existing.at : now)) + '"><label for="memory-spot">場所（選ばなくてもOK）</label><select id="memory-spot"><option value="">場所を付けない</option>' + spots.map((s) => '<option value="' + esc(s.id) + '"' + (existing && existing.spotId === s.id ? ' selected' : '') + '>' + esc(s.name) + '</option>').join('') + '</select><p id="memory-error" role="alert"></p><button id="save-memory" class="primary wide">思い出に残す</button></form>' });
+    const dlg = ui.dialog({ title: existing ? '思い出を整える' : '思い出をひとつ', onClose: () => { closed = true; }, body: '<form id="memory-form" class="timeline-form"><label for="memory-text">ひとこと（写真だけでもOK）</label><textarea id="memory-text" maxlength="5000" placeholder="ここに来られて、よかった。">' + esc(existing ? existing.text : '') + '</textarea><p class="caption">パスポート・ETA・予約番号は書かないでね。写真にも写っていないか見てね。</p><label for="memory-photo">写真を' + (existing ? '追加する' : '選ぶ') + '</label><input id="memory-photo" type="file" accept="image/*"><p class="caption">写真は縮小して、この端末だけに保存するよ。' + (existing && existing.photoIds.length ? '保存済みの写真はそのまま残るよ。' : '') + '</p><label for="memory-date">記録する日</label><input id="memory-date" type="date" required value="' + esc(existing ? existing.date : state.date || U.todayISO()) + '"><label for="memory-time">時刻（端末の時刻）</label><input id="memory-time" type="time" required value="' + esc(time(existing ? existing.at : now)) + '"><label for="memory-spot">場所（選ばなくてもOK）</label><select id="memory-spot"><option value="">場所を付けない</option>' + spots.map((s) => '<option value="' + esc(s.id) + '"' + (existing && existing.spotId === s.id ? ' selected' : '') + '>' + esc(s.name) + '</option>').join('') + '</select><p id="memory-error" role="alert"></p><button id="save-memory" class="primary wide">思い出に残す</button></form>' });
     const form = $('#memory-form', dlg), btn = $('#save-memory', dlg), error = $('#memory-error', dlg);
     state.dialog = dlg;
     const live = () => state.active && !closed && dlg.open && $('#memory-form', dlg) === form;
@@ -57,6 +58,7 @@
       const inputs = ['memory-text', 'memory-photo', 'memory-date', 'memory-time', 'memory-spot'].map((id) => $('#' + id, dlg));
       inputs.forEach((input) => { input.disabled = true; });
       let photo = null, saved = false;
+      const finish = T.feedback.begin();
       try {
         if (file) photo = await T.photo.add(file, { date, at: at.toISOString() });
         // 写真変換中に閉じた場合は、新しい画面にも記録にも触らない。
@@ -70,6 +72,7 @@
         if (live()) error.textContent = err.userMessage || (err.name === 'QuotaExceededError' ? '端末の保存場所がいっぱいみたい。設定でバックアップして、整理してからもう一度試してね。' : err.message || '保存できなかったよ。入力はそのまま、もう一度試してね。');
       } finally {
         if (photo && !saved) await store.photos.remove(photo.id).catch(() => { if (live()) error.textContent += ' 写真だけ残った可能性があるよ。設定で保存容量を見てね。'; });
+        finish(saved ? 'success' : 'error');
         busy = false;
         if (live()) { inputs.forEach((input) => { input.disabled = false; }); btn.disabled = false; btn.textContent = '思い出に残す'; }
       }
@@ -80,19 +83,23 @@
     if (!row || row.source !== 'timeline') return;
     const ok = await ui.confirm({ title: 'この思い出を削除する？', body: 'この端末の記録を削除するよ。元には戻せないので、残しておきたい写真はバックアップしてね。', ok: '削除する', cancel: '残しておく' });
     if (!ok || !state.active) return;
+    const finish = T.feedback.begin(); let removed = false;
     try {
       await store.remove('notes', id);
       for (const pid of row.photoIds || []) {
         const used = ['posts', 'notes'].some((coll) => store.all(coll).some((r) => (r.photoIds || []).includes(pid)));
         if (!used) await store.photos.remove(pid);
       }
+      removed = true;
     } catch (err) { if (state.active) ui.toast('削除を最後までできなかったよ。一覧と保存容量を見てね。'); }
+    finally { finish(removed ? 'success' : 'error'); }
   }
   T.register({
     id: 'timeline', title: '思い出', routes: ['timeline'], tab: { label: '思い出', icon: 'timeline', order: 30 },
-    render(root) {
-      const state = { active: true, dialog: null };
+    render(root, params = {}) {
+      const state = { active: true, dialog: null, date: params.date, deleting: new Set() };
       view(root);
+      if (params.add === 'photo') memoryDialog(state);
       const off = bus.on('store:changed', ({ coll }) => { if (state.active && ['posts', 'notes', 'visits', 'days', 'spots', '*'].includes(coll)) view(root); });
       const onClick = (e) => {
         const b = e.target.closest('button'); if (!b) return;
@@ -100,7 +107,7 @@
         else if (b.dataset.editMemory) {
           const row = store.get('notes', b.dataset.editMemory);
           if (row && row.source === 'timeline') memoryDialog(state, row);
-        } else if (b.dataset.deleteMemory) remove(state, b.dataset.deleteMemory);
+        } else if (b.dataset.deleteMemory && !state.deleting.has(b.dataset.deleteMemory)) { const id = b.dataset.deleteMemory; state.deleting.add(id); remove(state, id).finally(() => state.deleting.delete(id)); }
       };
       const onPhotoError = (e) => {
         const img = e.target;

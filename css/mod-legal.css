@@ -1,0 +1,9 @@
+.about-page{padding-top:24px;overflow-wrap:anywhere}
+.about-page h2{font-size:21px}
+.about-page h3{margin-top:20px}
+.about-version{color:var(--muted);font-size:14px;margin-bottom:24px}
+.about-page .about-links{position:static;display:grid;gap:8px;padding:0;background:transparent;border:0;z-index:auto}
+.about-links a,.about-contact{min-height:44px;justify-content:flex-start;text-decoration:underline;text-underline-offset:4px}
+.about-page ol{padding-left:1.5em}
+.about-page li{padding-bottom:8px}
+.about-page button{min-height:44px;max-width:100%;white-space:normal}

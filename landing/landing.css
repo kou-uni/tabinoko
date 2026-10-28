@@ -1,0 +1,26 @@
+.shell{max-width:1040px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hero{text-align:center;padding:20px 0 36px}
+.hero h1{font-size:clamp(27px,5vw,43px);line-height:1.65;font-family:serif}
+.hero p{max-width:630px;margin:16px auto}
+.landing-fairy{display:block;width:160px;height:160px;margin:16px auto}
+.cta{justify-content:center;min-height:52px;padding:13px 30px;background:var(--cyan);color:var(--on-accent);border-radius:12px;text-decoration:none;font-weight:600}
+.cta[aria-disabled="true"]{background:var(--paper);color:var(--muted);border:1px solid var(--line)}
+.hero-note{font-size:14px;color:var(--muted)}
+.section-head{margin:36px 0 12px}
+.number{font:28px/1.5 ui-monospace,monospace;color:var(--gold)}
+.value-grid,.price-grid{display:grid;gap:14px}
+.value-grid section,.price-grid section{margin:0;min-width:0}
+.steps li{padding:12px 0 4px 8px}
+.steps li::marker{color:var(--gold)}
+.steps h3{margin:0 0 8px}
+.paid{border-color:var(--gold)}
+.price{font-size:38px;color:var(--gold);line-height:1.4}
+.price span{font-size:16px;margin-left:6px}
+.price-grid + p{margin-top:16px}
+.faq details{border-top:1px solid var(--line);padding:10px 0}
+.faq summary{min-height:44px;padding:10px 0;cursor:pointer;touch-action:manipulation}
+.faq details p{margin:12px 0}
+.closing{text-align:center;padding:30px 0}
+.closing [role="status"]{margin-top:16px}
+@media(min-width:740px){.value-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.price-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{padding-top:36px}}

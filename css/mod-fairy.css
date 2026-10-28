@@ -3,12 +3,12 @@
 .fairy-intro{display:flex;align-items:center;gap:16px;color:var(--muted)}
 .fairy-view textarea{font-size:16px;min-height:130px;min-height:min(24dvh,180px);width:100%;scroll-margin-bottom:100px}
 .fairy-view button,.fairy-companion button{min-height:44px;min-width:44px;touch-action:manipulation}
-.fairy-message{padding:14px 17px;border-radius:12px;background:var(--paper);border:1px solid var(--line);margin:12px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.fairy-message{padding:14px 17px;border-radius:0;background:transparent;border:0;border-left:1px solid var(--divider);margin:12px 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .fairy-message p{margin:0 0 8px}
 .fairy-message .fairy-history-reply{margin:12px 0 0;border-top:1px solid var(--line);padding-top:12px;color:var(--ink)}
-.fairy-return{background:var(--soft);padding:16px;border-radius:12px;margin:16px 0;overflow-wrap:anywhere}
+.fairy-return{background:var(--soft);padding:16px;border-radius:0;margin:16px 0;overflow-wrap:anywhere}
 .fairy-companion{display:flex;gap:10px;max-width:720px;margin:0 auto;padding:16px max(20px,env(safe-area-inset-right)) calc(var(--nav-h) + env(safe-area-inset-bottom) + 24px) max(20px,env(safe-area-inset-left));overflow-wrap:anywhere}
 .fairy-companion>.fairy-art{width:44px;height:44px;flex:0 0 44px}
 .fairy-companion>div{min-width:0;flex:1}
-.fairy-companion p{background:var(--soft);border-radius:12px;padding:14px;margin:0 0 8px}
+.fairy-companion p{background:var(--soft);border-radius:0;padding:14px;margin:0 0 8px}
 .fairy-view #fairy-error{color:var(--ink);overflow-wrap:anywhere}

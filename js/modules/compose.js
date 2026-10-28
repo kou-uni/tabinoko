@@ -31,7 +31,7 @@
   }
   function render(root, params = {}) {
     const $ = s => root.querySelector(s);
-    let alive = true, busy = false, photoBusy = false, post = null, drafts = [], photos = [];
+    let alive = true, busy = false, photoBusy = false, post = null, drafts = [], photos = [], selectedDraft = 0;
     let angle = M.angle(params.angle || S.setting('angleDefault')).id;
     let spotId = params.spot || null;
     let restored = {};
@@ -44,20 +44,22 @@
       spotId = restored.spotId || null;
     }
     const spot = spotId && T.data.spot(spotId);
-    root.innerHTML = '<section class="compose-screen">' + ui.heading('CAPTURE THE LITTLE MOMENTS', '「あっ」を、ことばに。')
-      + '<p class="muted">うまく話さなくて大丈夫。そのまま聞かせて。</p><button class="wide" data-route="purposes" data-params=\'{"back":"post"}\'>目的・届けたい相手を選び直す</button>'
-      + '<form id="post-form"><label for="post-text">いま、何を感じた？</label><textarea id="post-text" maxlength="3000" placeholder="海沿いの夜景が、ネックレスみたい。"></textarea>'
-      + '<button type="button" id="post-voice" class="compose-voice">' + ui.icon('mic') + '声でひとこと</button><p class="caption">キーボードのマイクで話せるよ。音声入力の通信は端末の設定によります。<br>パスポート・ETA・予約番号は書かないでね。写真にも写さないでね。</p>'
-      + '<label for="post-photo">一緒に残す写真（4枚まで）</label><input id="post-photo" type="file" accept="image/*" multiple><div id="compose-photos" class="compose-photos"></div>'
-      + '<p class="caption">写真は端末に保存するよ。写真の中身を読み取る機能はないので、感じたことをひとこと添えてね。</p>'
-      + '<label for="post-angle">ことばの切り口</label><select id="post-angle">' + M.ANGLES.map(a => '<option value="' + a.id + '"' + (a.id === angle ? ' selected' : '') + '>' + esc(a.label) + '</option>').join('') + '</select>'
-      + '<label for="post-date">記録する日</label><select id="post-date">' + ui.dateOptions(params.date || U.todayISO()) + '</select><button id="compose-generate" class="primary wide" type="submit">投稿のことばを3つ見つける</button></form>'
-      + '<p id="compose-status" role="status" aria-live="polite"></p><p class="caption">文案を作ると、この瞬間が思い出に残るよ。投稿しなくても大丈夫。Xは文面を渡すだけ。写真はX側で元の写真を選んで添えてね。最後の投稿はXで確認してね。</p><div id="drafts"></div><button id="compose-new" class="wide">次の瞬間を残す</button></section>';
+    root.innerHTML = '<section class="compose-screen">' + ui.heading('CAPTURE THE LITTLE MOMENTS', '投稿')
+      + '<button class="text-btn" data-route="purposes" data-params=\'{"back":"post"}\'>' + esc([...S.doc('purposes').purposeIds.map(id => M.purpose(id)?.short), ...S.doc('purposes').audienceIds.map(id => M.audience(id)?.label)].filter(Boolean).join(' · ') || '目的・相手を設定') + ' / 変更</button>'
+      + '<form id="post-form"><label for="post-text">いま残すこと</label><textarea id="post-text" maxlength="3000" placeholder="例：チャイ 20ルピー。甘さは強め。"></textarea>'
+      + '<button type="button" id="post-voice" class="compose-voice">' + ui.icon('mic') + '音声入力</button><p class="caption">パスポート・ETA・予約番号は入力・撮影しないでください。</p>'
+      + '<label for="post-photo">写真を追加（4枚まで）</label><input id="post-photo" type="file" accept="image/*" multiple><div id="compose-photos" class="compose-photos"></div>'
+      + '<p class="caption">写真は端末に保存。画像の内容は解析しません。</p>'
+      + '<details class="compose-context"><summary>記録の条件 · <span id="compose-date-label"></span></summary><label for="post-angle">ことばの切り口</label><select id="post-angle">' + M.ANGLES.map(a => '<option value="' + a.id + '"' + (a.id === angle ? ' selected' : '') + '>' + esc(a.label) + '</option>').join('') + '</select>'
+      + '<label for="post-date">記録する日</label><select id="post-date">' + ui.dateOptions(params.date || U.todayISO()) + '</select></details><button id="compose-generate" class="primary wide" type="submit">3案を作成・端末に保存</button></form>'
+      + '<p id="compose-status" role="status" aria-live="polite"></p><p class="caption">最初の案を自動保存。Xでは文面と写真を本人が最終確認。写真はX側で選んで添付。</p><div id="drafts"></div><button id="compose-new" class="wide">次の記録を書く</button></section>';
     const field = $('#post-text');
+    if ($('#compose-date-label')) $('#compose-date-label').textContent = $('#post-date').value;
     ui.bindDraft(field, 'post');
     if (params.text && !field.value) { field.value = params.text; S.setDraft('post', field.value); }
     const detachVoice = T.voice.attach($('#post-voice'), field);
     if (restored.date && !params.date && !params.text && !params.angle && !params.spot) $('#post-date').innerHTML = ui.dateOptions(restored.date);
+    if ($('#compose-date-label')) $('#compose-date-label').textContent = $('#post-date').value;
     const remember = () => S.setDraft('compose', JSON.stringify({ postId: post && post.id, drafts, photos, angle, spotId, date: $('#post-date').value }));
     const status = text => { if (alive) $('#compose-status').textContent = text; };
     const context = () => Object.assign({}, S.doc('purposes'), { angle, spotName: spot && spot.name, photoIds: photos });
@@ -74,12 +76,12 @@
       });
     };
     const showDrafts = () => {
-      $('#drafts').innerHTML = '<h2>気持ちに近いことばを選んでね</h2>' + drafts.map((text, i) => '<article class="card compose-draft"><label for="compose-draft-' + i + '">文案 ' + (i + 1) + '</label><textarea id="compose-draft-' + i + '" data-draft="' + i + '" aria-describedby="compose-count-' + i + '">' + esc(text) + '</textarea><p class="caption" id="compose-count-' + i + '" data-count="' + i + '"></p><div class="compose-actions"><button data-copy="' + i + '">コピー</button><button data-save-post="' + i + '">この案を思い出に保存</button><a data-x="' + i + '" target="_blank" rel="noopener noreferrer">X で最終確認 ↗</a></div></article>').join('');
+      $('#drafts').innerHTML = '<div class="draft-tabs" role="tablist" aria-label="文案">' + drafts.map((_, i) => '<button role="tab" id="draft-tab-' + i + '" aria-controls="draft-panel-' + i + '" data-select-draft="' + i + '" tabindex="' + (i === selectedDraft ? '0' : '-1') + '" aria-selected="' + (i === selectedDraft) + '">案 ' + (i + 1) + '</button>').join('') + '</div>' + drafts.map((text, i) => '<article role="tabpanel" aria-labelledby="draft-tab-' + i + '" id="draft-panel-' + i + '" class="compose-draft" ' + (i !== selectedDraft ? 'hidden' : '') + '><label for="compose-draft-' + i + '">文案 ' + (i + 1) + '</label><textarea id="compose-draft-' + i + '" data-draft="' + i + '" aria-describedby="compose-count-' + i + '">' + esc(text) + '</textarea><p class="caption" id="compose-count-' + i + '" data-count="' + i + '"></p><div class="compose-actions"><button data-copy="' + i + '">コピー</button><button data-save-post="' + i + '">この案を端末に保存</button><a data-x="' + i + '" target="_blank" rel="noopener noreferrer">X で最終確認 ↗</a></div></article>').join('');
       sync();
     };
     async function save(text, prompt) {
       const row = M.make('posts', Object.assign({}, post || {}, { id: post ? post.id : U.uid(), date: $('#post-date').value, text: text.trim(), prompt, angle, spotId, photoIds: photos.slice(), purposeIds: S.doc('purposes').purposeIds, audienceIds: S.doc('purposes').audienceIds, showInTimeline: true }));
-      post = await S.put('posts', row);
+      post = await T.feedback.run(() => S.put('posts', row));
       if (alive) remember();
       T.bus.emit('post:saved', { post });
       return post;
@@ -91,7 +93,7 @@
       angle = $('#post-angle').value;
       drafts = templates(field.value, context()); showDrafts();
       remember();
-      try { await save(drafts[0], field.value); status('この瞬間を思い出に残したよ。ことばは自由に直してね。'); }
+      try { await save(drafts[0], field.value); status('文案を端末に保存。編集できます。'); }
       catch (err) { status('まだ思い出に保存できていないよ。入力はここにあるので、空き容量を確かめてもう一度保存してね。'); }
       finally { busy = false; if (alive) { $('#compose-generate').disabled = false; sync(); } }
     };
@@ -99,25 +101,28 @@
       if (photoBusy || busy) return;
       const files = Array.from(e.target.files || []); if (!files.length) return;
       photoBusy = true; e.target.disabled = true; $('#compose-generate').disabled = true;
-      status('写真を思い出に迎えているよ…');
+      status('写真を保存中');
+      const finish = T.feedback.begin(); let savedPhotos = false;
       try {
         if (files.length + photos.length > 4) throw new Error('写真は4枚まで選んでね。');
         for (const file of files) {
           const row = await T.photo.add(file, { date: $('#post-date').value }); photos.push(row.id);
           if (!alive) break;
           remember();
-          $('#compose-photos').innerHTML = photos.map(id => '<img data-photo-id="' + esc(id) + '" alt="一緒に残す旅の写真">').join(''); ui.hydratePhotos($('#compose-photos'));
+          $('#compose-photos').innerHTML = photos.map(id => '<img data-photo-id="' + esc(id) + '" alt="記録に添えた写真">').join(''); ui.hydratePhotos($('#compose-photos'));
         }
-        status('写真を端末に残したよ。文案を作ると、ことばと一緒に思い出に残るよ。');
+        savedPhotos = true; status('写真を端末に保存。写真 ' + photos.length + ' / 4');
       } catch (err) { status('写真を追加できなかったよ。' + (err.message || '空き容量や写真の形式を確かめてね。')); }
-      finally { photoBusy = false; if (alive) { e.target.disabled = false; e.target.value = ''; $('#compose-generate').disabled = false; } }
+      finally { finish(savedPhotos ? 'success' : 'error'); photoBusy = false; if (alive) { e.target.disabled = false; e.target.value = ''; $('#compose-generate').disabled = false; } }
     };
     const input = e => {
       if (e.target.dataset.draft !== undefined) { drafts[+e.target.dataset.draft] = e.target.value; sync(); }
+      if ($('#compose-date-label')) $('#compose-date-label').textContent = $('#post-date').value;
       remember();
     };
     const click = async e => {
       const b = e.target.closest('button,a'); if (!b) return;
+      if (b.dataset.selectDraft !== undefined) { selectedDraft = +b.dataset.selectDraft; showDrafts(); $('#draft-tab-' + selectedDraft).focus(); return; }
       if (b.dataset.copy !== undefined) {
         const area = $('[data-draft="' + b.dataset.copy + '"]');
         // execCommand reports actual success; util.copy treats an unfulfilled clipboard promise as success.
@@ -128,11 +133,11 @@
         if (busy || photoBusy) return;
         const text = drafts[+b.dataset.savePost]; if (!text.trim()) return status('残したいことばをひとこと添えてね。');
         busy = true; b.disabled = true; sync();
-        try { await save(text, field.value); status('この案を思い出に残したよ。Xで確認するなら、下のリンクからどうぞ。'); }
+        try { await save(text, field.value); status('文案を端末に保存。Xで確認できます。'); }
         catch (_) { status('保存できなかったよ。入力はここにあるので、もう一度試してね。'); }
         finally { busy = false; if (alive) { b.disabled = false; sync(); } }
       } else if (b.dataset.x !== undefined) {
-        if (!b.hasAttribute('href') || busy || !U.isOnline()) { e.preventDefault(); status('この案を思い出に保存して、回線が戻ってからXで確認してね。'); }
+        if (!b.hasAttribute('href') || busy || !U.isOnline()) { e.preventDefault(); status('この案を端末に保存して、回線が戻ってからXで確認してね。'); }
         else {
           const area = $('[data-draft="' + b.dataset.x + '"]');
           area.focus(); area.select(); area.setSelectionRange(0, area.value.length);
@@ -141,7 +146,9 @@
         // X を開いたことと実際に投稿したことは区別。sharedAt は設定しない。
       }
     };
-    root.addEventListener('input', input); root.addEventListener('click', click);
+    const tabKey = e => { if (e.target.dataset.selectDraft === undefined || !['ArrowLeft','ArrowRight','Home','End'].includes(e.key)) return; e.preventDefault(); selectedDraft = e.key === 'Home' ? 0 : e.key === 'End' ? drafts.length - 1 : (selectedDraft + (e.key === 'ArrowRight' ? 1 : -1) + drafts.length) % drafts.length; showDrafts(); $('#draft-tab-' + selectedDraft).focus(); };
+    root.addEventListener('keydown', tabKey);
+    root.addEventListener('input', input); root.addEventListener('change', input); root.addEventListener('click', click);
     $('#compose-new').onclick = () => {
       if (busy || photoBusy) return;
       if (!post && (field.value.trim() || photos.length)) return status('今の瞬間を文案にして保存してから、次へ進もう。');
@@ -152,11 +159,11 @@
     };
     if (drafts.length) showDrafts();
     if (photos.length) {
-      $('#compose-photos').innerHTML = photos.map(id => '<img data-photo-id="' + esc(id) + '" alt="一緒に残す旅の写真">').join('');
+      $('#compose-photos').innerHTML = photos.map(id => '<img data-photo-id="' + esc(id) + '" alt="記録に添えた写真">').join('');
       ui.hydratePhotos($('#compose-photos'));
     }
     const offOnline = T.bus.on('app:online', sync), offOffline = T.bus.on('app:offline', sync);
-    return () => { alive = false; root.removeEventListener('input', input); root.removeEventListener('click', click); offOnline(); offOffline(); if (detachVoice) detachVoice(); T.voice.stop(); };
+    return () => { alive = false; root.removeEventListener('keydown', tabKey); root.removeEventListener('input', input); root.removeEventListener('change', input); root.removeEventListener('click', click); offOnline(); offOffline(); if (detachVoice) detachVoice(); T.voice.stop(); };
   }
   T.register({ id: 'compose', title: '投稿', routes: ['post'], tab: { label: '投稿', icon: 'post', order: 20, accent: true }, render, templates });
 })();

@@ -5,3 +5,4 @@
 .settings-coach button { margin-right: 8px; }
 #settings-export .file-label { display: flex; justify-content: center; margin: 8px 0; }
 #settings-pwa ~ ol { padding-left: 1.5em; }
+.settings-toggle{display:flex;align-items:center;gap:12px}.settings-toggle input{width:44px;height:44px;flex:none}#main:has(#settings-export)>.card:first-of-type{border-left:2px solid var(--accent);padding-left:20px}#main:has(#settings-export)>.card:has(#wipe){border-top:1px solid var(--warning);margin-top:40px}#main:has(#settings-export)>.card:has(#export){padding-top:8px}#main:has(#settings-export)>details{margin-bottom:16px}

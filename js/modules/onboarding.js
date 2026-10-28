@@ -38,7 +38,7 @@
       root.innerHTML = '<section class="onboarding" data-onboarding aria-busy="false"><div class="onboarding-intro">' + ui.fairy('onboarding-fairy')
         + '<p class="onboarding-step">' + (firstRun ? (phase === 'hearing' ? '旅のはじまり · 1 / 2' : '思い出の残し方 · 2 / 2') : '思い出の残し方') + '</p>'
         + '<h1>' + (phase === 'hearing' ? 'どんな旅に行くの？' : 'どんな気持ちを残そう？') + '</h1>'
-        + '<p>' + (phase === 'hearing' ? 'ムンバイへ行くんだね、いいなあ。<br>空港でひと息つくあいだに、楽しみなことを聞かせて。わたしもいっしょに行きたいな。' : 'いっしょに思い出を残せたら、うれしいな。<br>気になるものをいくつでも。まだ決めなくても大丈夫だよ。') + '</p></div>'
+        + '<p>' + (phase === 'hearing' ? 'ムンバイ夜航ログ。<br>旅で残したいことを、最初のメモに。' : '記録する目的と、届ける相手。<br>複数選択できます。後から変更できます。') + '</p></div>'
         + (phase === 'hearing'
           ? '<form data-hearing-form><label for="onboarding-text">旅の楽しみ、ひとことから</label><textarea id="onboarding-text" rows="4" maxlength="2000" aria-describedby="onboarding-input-help onboarding-private" placeholder="石窟の景色も、新しい人との出会いも楽しみ！">' + esc(store.draft('hearing')) + '</textarea><p class="onboarding-help" id="onboarding-input-help">書きかけも残しておくね。声で入れるなら、入力欄を押してキーボードのマイクを使ってね。音声入力には通信が必要な場合があります（OS・端末の設定によります）。</p><p class="onboarding-help" id="onboarding-private">パスポート・ETA・予約番号は書かないでね。</p><button type="submit" class="primary wide" data-send>たびのこに話す ✧</button></form>'
           : (context ? '<details class="onboarding-story"><summary>聞かせてくれた旅の話</summary><p>' + esc(context.text) + '</p></details>' : '<p class="onboarding-help">旅の話は、あとから妖精に聞かせてね。</p>')

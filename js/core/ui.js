@@ -7,8 +7,8 @@
 
   const ICONS = {
     book: '<path d="M3 4h7l2 2 2-2h7v16h-7l-2 1-2-1H3zM12 6v15M6 8h3m-3 4h3m6-4h3m-3 4h3"/>',
-    post: '<path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/>',
-    timeline: '<path d="M5 4v16m5-14h10m-10 6h7m-7 6h10"/><circle cx="5" cy="6" r="1.5"/><circle cx="5" cy="18" r="1.5"/>',
+    post: '<path d="M4 3h12l4 4v14H4z M8 12h8 M12 8v8"/>',
+    timeline: '<path d="M5 3v18 M3 5h4v4H3z M3 16h4v4H3z M11 6h10 M11 12h7 M11 18h10"/>',
     map: '<path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2zM9 3v16m6-14v16"/>',
     fairy: '<path d="m12 2 2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5zM20 17v5m-2.5-2.5h5"/>',
     note: '<path d="M13 4H4v17h16v-9M9 15l1-5L19 1l4 4-9 9z"/>',
@@ -44,7 +44,7 @@
     icon(name) { return '<svg class="icon" aria-hidden="true"><use href="#i-' + name + '"/></svg>'; },
     /** 妖精の絵。cls に 'fairy-large' など。 */
     fairy(cls) { return '<svg class="fairy-art ' + (cls || '') + '" aria-hidden="true" focusable="false"><use href="#fairy"/></svg>'; },
-    heading(en, title, extra) { return '<div class="eyebrow">' + esc(en) + '</div><div class="page-head"><h1>' + title + '</h1>' + (extra || '') + '</div>'; },
+    heading(en, title, extra) { return '<div class="page-head"><h1>' + title + '</h1>' + (extra || '') + '</div>'; },
     empty(text) { return '<div class="empty">' + text + '</div>'; },
 
     toast(msg, ms) {
@@ -56,11 +56,11 @@
 
     /** 共有ダイアログ。body は HTML 文字列。開いたら最初の入力欄にフォーカス（閉じるボタンではなく）。 */
     dialog(opts) {
-      const d = $('#dialog');
+      const d = $('#dialog'), opener = document.activeElement;
       d.innerHTML = '<div class="dialog-head"><h2 id="dialog-title">' + esc(opts.title || '') + '</h2><button type="button" id="dialog-close" class="text-btn" aria-label="閉じる">✕</button></div>' + (opts.body || '');
       d.setAttribute('aria-labelledby', 'dialog-title');
       $('#dialog-close').onclick = () => ui.closeDialog();
-      d.onclose = () => { if (opts.onClose) opts.onClose(); };
+      d.onclose = () => { if (opts.onClose) opts.onClose(); if (opener && opener.isConnected) opener.focus({ preventScroll: true }); };
       d.onclick = (e) => { if (e.target === d) ui.closeDialog(); };
       if (!d.open) d.showModal();
       const first = d.querySelector('input:not([type=hidden]):not([type=file]),textarea,select');
@@ -91,7 +91,10 @@
     hydratePhotos(root) {
       (root || document).querySelectorAll('img[data-photo-id]').forEach(async (img) => {
         try {
+          const meta = T.store.get('photos', img.dataset.photoId);
+          if (meta && meta.w > 0 && meta.h > 0) { img.width = meta.w; img.height = meta.h; img.style.aspectRatio = meta.w + '/' + meta.h; }
           const u = await T.store.photos.url(img.dataset.photoId);
+          if (!u && T.gameUI) T.gameUI.missingPhoto(img.dataset.photoId);
           if (!img.isConnected) return;
           if (u) img.src = u; else img.replaceWith(document.createTextNode('写真を読み込めませんでした。'));
         } catch (e) { if (img.isConnected) img.replaceWith(document.createTextNode('写真の保存領域にアクセスできません。')); }

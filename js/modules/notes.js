@@ -10,16 +10,16 @@
     + (n.showInTimeline !== false ? '思い出に表示中' : 'メモだけに保存中') + '</button>'
     + '<button type="button" class="text-btn" data-delete-note="' + esc(n.id) + '">削除</button></div></article>';
 
-  function render(root) {
+  function render(root, params = {}) {
     let active = true, saving = false;
     const busy = new Set();
-    root.innerHTML = '<section class="notes-page">' + ui.heading('A POCKET FOR YOUR THOUGHTS', '旅のポケットメモ')
-      + '<p>旅で見つけたこと、ここにしまっておこう。</p>'
+    root.innerHTML = '<section class="notes-page">' + ui.heading('A POCKET FOR YOUR THOUGHTS', 'メモ')
+      + '<p>店名と値段を残すと、あとで探しやすい。</p>'
       + '<form id="memo-form"><label for="memo-text">ひとことメモ</label><textarea id="memo-text" maxlength="5000" aria-describedby="notes-privacy" placeholder="気になったお店、聞いたこと、明日やりたいこと。"></textarea>'
       + '<p id="notes-privacy" class="notes-help">パスポート・ETA・予約番号は書かないでね。</p>'
       + '<label class="notes-choice" for="memo-timeline"><input id="memo-timeline" type="checkbox" checked><span>思い出（タイムライン）にも並べる</span></label>'
-      + '<label for="memo-date">記録する日</label><select id="memo-date">' + ui.dateOptions() + '</select>'
-      + '<button id="memo-save" type="submit" class="primary wide">メモを残す</button></form>'
+      + '<label for="memo-date">記録する日</label><select id="memo-date">' + ui.dateOptions(params.date || U.todayISO()) + '</select>'
+      + '<button id="memo-save" type="submit" class="primary wide">メモを保存</button></form>'
       + '<p class="notes-help">この端末だけに保存するよ。メモを外に送ることはないよ。回線がなくても書き留められるよ。</p>'
       + '<p id="notes-status" role="status" aria-live="polite"></p>'
       + '<div class="section-label"><h2>ポケットの中</h2></div><div id="notes-list"></div></section>';
@@ -28,7 +28,7 @@
     const list = () => {
       if (!active) return;
       const el = $('#notes-list', root);
-      el.innerHTML = store.all('notes').slice().reverse().map(entryHTML).join('') || ui.empty('まだ空っぽ。旅の途中の小さな発見、ここで待ってるね。');
+      el.innerHTML = store.all('notes').slice().reverse().map(entryHTML).join('') || ui.empty('記録 0件');
       ui.hydratePhotos(el);
     };
     ui.bindDraft(ta, 'note');
@@ -38,24 +38,24 @@
       if (!active || saving) return;
       const raw = ta.value, text = raw.trim();
       if (!text) { status('ひとこと書いたら、ポケットにしまおう。'); ta.focus(); return; }
-      saving = true; submit.disabled = true; submit.textContent = 'しまっているよ…';
+      saving = true; submit.disabled = true; submit.textContent = '保存中';
       try {
-        const note = await store.put('notes', T.model.make('notes', {
+        const note = await T.feedback.run(() => store.put('notes', T.model.make('notes', {
           id: U.uid(), date: $('#memo-date', root).value, text,
           showInTimeline: $('#memo-timeline', root).checked,
-        }));
+        })));
         // 保存を待つ間に書いた次のメモや、別画面の下書きを消さない。
         if (store.draft('note') === raw) store.setDraft('note', '');
         T.bus.emit('note:saved', { note });
         if (active) {
           if (ta.value === raw) ta.value = '';
-          list(); status('メモをポケットにしまったよ。');
+          list(); status('メモを保存');
         }
       } catch (err) {
         status('まだ保存できていないよ。書いた言葉はこの欄に残してあるよ。端末の空き容量を確かめて、もう一度しまってみてね。');
       } finally {
         saving = false;
-        if (active) { submit.disabled = false; submit.textContent = 'メモを残す'; }
+        if (active) { submit.disabled = false; submit.textContent = 'メモを保存'; }
       }
     };
     const onClick = async (e) => {
@@ -74,7 +74,7 @@
           const ok = await ui.confirm({ title: 'このメモを手放す？', body: '思い出からも消えて、元には戻せないよ。', ok: '削除する', cancel: '残しておく' });
           if (!ok || !active) return;
           // 写真は他の記録も参照しうるため、ここではメモ行のみを消す。
-          await store.remove('notes', id);
+          await T.feedback.run(() => store.remove('notes', id));
           status('メモを削除したよ。');
         }
         list();

@@ -21,22 +21,26 @@
     if (!selected || !days.some(d => d.date === selected)) selected = (days.find(d => d.date >= today) || days[days.length - 1] || {}).date;
     const d = data.day(selected), now = data.day(today), future = days.find(x => x.date > today);
     const trip = store.doc('trip');
-    root.innerHTML = '<div class="plan-page"><section class="plan-hero"><div class="eyebrow">MY MUMBAI JOURNAL · 2026</div><h1>ムンバイ、いっしょに。</h1><p>知らない景色、いっしょに見つけよう。</p><p>' + esc(trip.start) + ' 〜 ' + esc(trip.end) + ' · ' + (U.daysBetween(trip.start, trip.end) + 1) + '日間の旅</p>' + skyline() + '</section>'
-      + '<div class="plan-switch" aria-label="旅を行き来する"><button id="plan-now">いま・今日</button><button id="plan-future" ' + (!future ? 'disabled' : '') + '>これから</button>' + route('timeline', '思い出') + '</div>'
-      + '<section class="card plan-now" aria-label="今日の予定"><h2>いま · ' + esc(U.dayLabel(today)) + '</h2><p>' + esc(now ? now.headline : today < trip.start ? '旅のはじまり、楽しみだね。' : today > trip.end ? '旅の思い出、またいっしょに開こう。' : '今日は予定のない日。どんな景色に会えるかな。') + '</p>'
-      + (now ? '<p>' + esc(now.items.map(x => (x.time ? x.time + ' ' : '') + x.title).join(' ／ ') || '予定はまだ空っぽ。気分に合わせて足してね。') + '</p>' : '')
-      + '<div class="plan-actions">' + route('notes', '気づきをメモ', { date: today }) + route('post', 'いまの気持ちを残す') + '</div><small>今日＝端末の日付。便の時刻は各空港の現地時刻。</small></section>'
+    const nextDay = days.find(x => x.date >= today && x.items.length), item = nextDay && nextDay.items[0];
+    const validTrip = T.progress.valid(trip.start) && T.progress.valid(trip.end) && trip.start <= trip.end;
+    const phase = !validTrip ? '旅程を確認' : today < trip.start ? '出発まで' + U.daysBetween(today, trip.start) + '日' : today > trip.end ? '旅程終了' : '旅程 ' + (U.daysBetween(trip.start, today) + 1) + '日目';
+    root.innerHTML = '<div class="plan-page"><section class="plan-hero"><h1>ムンバイ / ' + esc(phase) + '</h1><p>' + esc(trip.start) + ' — ' + esc(trip.end) + ' · ' + (validTrip ? U.daysBetween(trip.start, trip.end) + 1 : '—') + '日間の旅</p>' + skyline() + '</section>'
+      + '<section class="plan-now" aria-label="次の予定"><h2>' + (nextDay && nextDay.date === today ? '今日の先頭の予定' : '次の予定') + '</h2>'
+      + (item ? '<p class="state-label">' + esc(U.dayLabel(nextDay.date)) + '</p><p class="' + (/^\d{1,2}:\d{2}$/.test(item.time) ? 'plan-next-time' : 'plan-time') + '">' + esc(item.time || '時刻未設定') + '</p><p class="plan-next-title">' + esc(item.title) + '</p>' : '<p>予定なし</p>')
+      + '<small>便の時刻は各空港の現地時刻。予定は保存順。</small><div class="plan-actions"><button class="primary" data-route="notes" data-params="' + esc(JSON.stringify({date:today})) + '">いま残すこと</button></div></section>'
+      + T.gameUI.missions(today < trip.start || today > trip.end ? today : selected || today)
+      + '<div class="plan-switch" aria-label="旅の表示"><button id="plan-now">今日</button><button id="plan-future" ' + (!future ? 'disabled' : '') + '>これから</button>' + route('timeline', '思い出') + '</div>'
       + '<h2>旅のしおり</h2>'
       + (d ? '<div class="plan-dates" aria-label="旅の日付">' + days.map(x => '<button data-day="' + esc(x.date) + '" aria-pressed="' + (x.date === selected) + '">' + esc(U.dayLabel(x.date)) + (x.date === today ? ' 今日' : '') + '</button>').join('') + '</div>'
       + '<article class="card plan-day"><div class="day-top"><span class="badge">' + esc(d.title) + '</span><button class="text-btn" id="edit-day">この日を編集</button></div><h2>' + esc(d.headline) + '</h2><p class="plan-note">' + esc(d.note) + '</p>'
       + (d.staleSeed && data.seedDay(d.date) ? '<div class="plan-update"><p>この日に新しい確定情報が届いているよ。あなたの編集は残してあるよ。</p><button id="plan-update">新しい予定を確認</button></div>' : '')
       + (d.candidates.length ? '<h3>予備スポットから選ぼう</h3><div class="plan-actions">' + d.candidates.map(id => '<button data-candidate="' + esc(id) + '">＋ ' + esc((data.spot(id) || {}).name || id) + '</button>').join('') + '</div>' : '')
-      + (d.items.length ? d.items.map((x, i) => '<div class="plan-stop"><span class="stop-num">' + (i + 1) + '</span><div class="plan-stop-body"><strong>' + esc(x.title) + '</strong>' + (x.time ? '<p class="plan-time">' + esc(x.time) + '</p>' : '') + (x.note ? '<p class="plan-note">' + esc(x.note) + '</p>' : '') + '<small>' + esc(kinds[x.kind] || '') + '</small></div><button class="text-btn" data-edit-item="' + i + '" aria-label="' + esc(x.title) + 'を編集">編集</button></div>').join('') : ui.empty('まだ予定は空っぽ。楽しみをひとつ足してみよう。'))
-      + '<div class="plan-actions"><button id="add-item">＋ 予定を追加</button><button id="reorder" ' + (d.items.length < 2 ? 'disabled' : '') + '>並べ替え</button></div></article>' : ui.empty('しおりはまだ空っぽ。旅の話や気づきは、ここから残せるよ。'))
+      + (d.items.length ? d.items.map((x, i) => '<div class="plan-stop"><span class="stop-num">' + (i + 1) + '</span><div class="plan-stop-body"><strong>' + esc(x.title) + '</strong>' + (x.time ? '<p class="plan-time">' + esc(x.time) + '</p>' : '') + (x.note ? '<p class="plan-note">' + esc(x.note) + '</p>' : '') + '<small>' + esc(kinds[x.kind] || '') + '</small></div><button class="text-btn" data-edit-item="' + i + '" aria-label="' + esc(x.title) + 'を編集">編集</button></div>').join('') : ui.empty('予定なし。予定を追加。'))
+      + '<div class="plan-actions"><button id="add-item">＋ 予定を追加</button><button id="reorder" ' + (d.items.length < 2 ? 'disabled' : '') + '>並べ替え</button></div></article>' : ui.empty('旅程なし。メモは記録できます。'))
       + '<section id="plan-suggestions" hidden></section>'
       + (store.all('hearing').length ? '<details class="card"><summary>聞かせてくれた旅の話</summary><p class="caption">予定を考えるとき、ここから見返せるよ。</p>' + store.all('hearing').sort((a, b) => String(b.at).localeCompare(String(a.at))).map(x => '<p class="plan-note"><small>' + esc(x.date) + '</small><br>' + esc(x.text) + '</p>').join('') + '</details>' : '')
       + (d && d.items.some(x => x.kind === 'event' && /ETHGlobal/.test(x.title)) ? '<div class="card"><p>ファイナリストとして参加する日。挑戦の気持ちも残せるよ。</p>' + route('post', 'ファイナリストとして参加', { angle: 'finalist', date: d.date }) + '</div>' : '')
-      + route('fairy', '✧ 妖精に旅の話をする') + '</div>';
+      + route('fairy', '記録係に話す') + '</div>';
     if (d) bus.request('suggest:today', { date: d.date }).then(list => {
       if (mounted !== root || revision !== version) return;
       const el = $('#plan-suggestions', root);
@@ -129,7 +133,7 @@
       view(root);
       const onClick = e => {
         const b = e.target.closest('button'); if (!b) return;
-        if (b.dataset.day) { selected = b.dataset.day; view(root); }
+        if (b.dataset.day && b.dataset.day !== selected) { selected = b.dataset.day; view(root); }
         else if (b.id === 'plan-now') { selected = U.todayISO(); view(root); $('.plan-now', root).scrollIntoView({ block: 'start' }); }
         else if (b.id === 'plan-future') { selected = (daysSorted().find(d => d.date > U.todayISO()) || {}).date; view(root); }
         else if (b.id === 'edit-day') editDay(root);
@@ -141,7 +145,8 @@
       };
       root.addEventListener('click', onClick);
       const off = bus.on('seed:updated', () => view(root));
-      return () => { mounted = null; ++revision; root.removeEventListener('click', onClick); off(); ui.closeDialog(); };
+      const offDate = bus.on('calendar:changed', () => { selected = U.todayISO(); view(root); });
+      return () => { mounted = null; ++revision; root.removeEventListener('click', onClick); off(); offDate(); ui.closeDialog(); };
     },
   });
 })();

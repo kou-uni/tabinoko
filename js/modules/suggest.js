@@ -21,7 +21,7 @@
     feel: ['moved', '心が動いた瞬間と、そのときの気持ち', '感動を残しておくと、あとでこの瞬間に戻れそうだから。'],
     share: ['surprise', '来てみて初めてわかったこと', '実際に体験した一コマなら、旅の空気が伝わりそうだから。'],
     useful: ['useful', '実際に試してわかった、次に来る人へのヒント', '体験したことが、誰かの旅の小さな助けになりそうだから。'],
-    cheer: ['moved', '今日うれしかったことを、ひとつおすそわけ', '見守ってくれる人も、一緒に旅を喜べそうだから。'],
+    cheer: ['moved', '今日うれしかったことを、ひとつおすそわけ', '応援してくれる人に向けた近況として。'],
   };
   function dateOf(req) {
     const d = req && (req.date || req.day);
@@ -58,7 +58,7 @@
       const forSelf = audience.length === 1 && audience[0] === 'self';
       return {
         id, angle, when: (item.time ? item.time + ' · ' : '') + scene[0],
-        text: name + focus + 'を一言残してみない？' + (forSelf ? '自分だけの思い出でもいいんだよ。' : '一緒に思い出にできたらうれしいな。'),
+        text: name + focus + 'を一言残してみない？' + (forSelf ? '自分だけの思い出でもいいんだよ。' : '場所と日付も添えると見返しやすい。'),
         reason: finalist ? 'これまでの挑戦からつながる出会いを、今の気持ちと残せそうだから。' : rule ? rule[2] : '小さな驚きが、あとで旅を思い出すきっかけになりそうだから。',
         spotId: item.spotId || null, key,
       };
@@ -81,7 +81,7 @@
             + '<p class="caption">切り口の変更は、アプリを開いているあいだ覚えているよ。</p><button class="wide" data-route="plan" data-params="' + esc(JSON.stringify({ day: date })) + '">しおりへ戻る</button></section>';
         } catch (err) {
           list = [];
-          root.innerHTML = '<section class="suggest-page"><h1>提案を開けなかったよ</h1><p role="status">もう一度、今日の場面を一緒に探してみよう。</p><button data-suggest-retry>もう一度開く</button><button data-route="plan">しおりへ戻る</button></section>';
+          root.innerHTML = '<section class="suggest-page"><h1>提案を開けなかったよ</h1><p role="status">もう一度、記録の切り口を読み込んでください。</p><button data-suggest-retry>もう一度開く</button><button data-route="plan">しおりへ戻る</button></section>';
         }
       }
       const change = (e) => {

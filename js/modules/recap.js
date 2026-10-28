@@ -1,4 +1,4 @@
-/* recap — F14: 端末内の日別アルバム、F16: 希望を残す入口のみ。 */
+/* recap — F14: 端末内の日別アルバム、ムービー・おまとめへの入口。 */
 (function () {
   'use strict';
   const T = window.Tabi, U = T.util, ui = T.ui, esc = U.esc, store = T.store, bus = T.bus;
@@ -27,12 +27,13 @@
 
   function render(root, params) {
     let variant = params && params.variant === 'learning' ? 'learning' : 'memory';
-    let active = true, revision = 0, saving = false;
+    let active = true, revision = 0;
     const alive = (version) => active && root.isConnected && version === revision;
     function paint() {
-      const version = ++revision, groups = chapters(variant), wanted = !!store.setting('wantsHdVideo');
-      root.innerHTML = '<div class="recap-view">' + ui.heading('WHAT A JOURNEY', '旅を、もう一度。')
+      const version = ++revision, groups = chapters(variant);
+      root.innerHTML = '<div class="recap-view">' + ui.heading('', '旅の到達記録') + '<div data-game-summary>' + T.gameUI.summary() + '</div>'
         + '<button class="text-btn" data-route="timeline">← あしあとへ戻る</button>'
+        + '<button class="primary" data-route="movie" data-params="' + esc(JSON.stringify({ variant })) + '">ムービーを作る</button>'
         + '<div class="recap-variants" role="group" aria-label="振り返りの見せ方">'
         + ['memory', 'learning'].map((v) => '<button data-recap-variant="' + v + '" aria-pressed="' + (variant === v) + '">' + (v === 'memory' ? '思い出' : '学びの記録') + '</button>').join('') + '</div>'
         + '<p class="recap-guide">' + (variant === 'memory' ? '写真から、あの日へ。下へめくって見返そう。' : '「学び」の目的で残した投稿、メモ、ほかの言葉の順に。あなたの言葉をそのまま見返そう。') + '</p>'
@@ -49,9 +50,9 @@
               return '<article class="recap-slide"><p class="recap-kind">' + (entry.kind === 'notes' ? '残したメモ' : entry.kind === 'photos' ? '旅の写真' : (entry.purposeIds || []).includes('learn') ? '学びの投稿' : '残した投稿') + '</p>'
                 + (variant === 'learning' ? text + images : images + text) + '</article>';
             }).join('') + '</section>';
-        }).join('') : '<section class="recap-empty">' + ui.fairy('fairy-large') + '<h2>思い出は、これから。</h2><p>ひとことや写真が増えたら、ここで一緒に見返そう。</p><button class="primary" data-route="post">最初のひとことを残す</button><button data-route="timeline">写真を残す</button></section>') + '</div>'
-        + '<section class="recap-hd"><h2>友達に見せる高画質版</h2><span class="badge">準備中</span><p>いつか友達にも見せたいね。今は「ほしい」の気持ちだけ、この端末に残せるよ。</p><p class="caption">動画の作成・支払い・外部への送信はありません。</p>'
-        + '<button data-recap-want aria-pressed="' + wanted + '"' + (wanted || saving ? ' disabled' : '') + '>' + (wanted ? '「ほしい」を記録したよ' : saving ? '記録しているよ…' : 'ほしい') + '</button><p class="recap-status" role="status"></p></section></div>';
+        }).join('') : '<section class="recap-empty"><h2>旅の記録 0</h2><p>メモ・写真を残す。</p><button data-route="post">最初のひとことを残す</button><button data-route="timeline">写真を残す</button></section>') + '</div>'
+        + '<section class="recap-hd"><h2>友達に見せる高画質版</h2><p>おまとめは1回300円（税込）。高画質の動画と、友達に見せる専用テンプレートだよ。</p>'
+        + '<button data-route="upgrade">おまとめを見る</button></section></div>';
       ui.hydratePhotos(root);
       bus.emit('recap:opened', { variant });
       // 妖精の応答でアルバムの初期表示を待たせない。共有 root は遷移後も接続されたまま。
@@ -69,27 +70,6 @@
         variant = button.dataset.recapVariant;
         paint();
         root.querySelector('[data-recap-variant="' + variant + '"]').focus();
-      } else if (button.hasAttribute('data-recap-want') && !saving && !store.setting('wantsHdVideo')) {
-        saving = true;
-        button.disabled = true;
-        button.textContent = '記録しているよ…';
-        try {
-          await store.setSetting('wantsHdVideo', true);
-          if (active && root.isConnected) {
-            const current = root.querySelector('[data-recap-want]');
-            current.disabled = true;
-            current.setAttribute('aria-pressed', 'true');
-            current.textContent = '「ほしい」を記録したよ';
-            root.querySelector('.recap-status').textContent = 'その気持ち、この端末に残したよ。';
-          }
-        } catch (error) {
-          if (active && root.isConnected) {
-            const current = root.querySelector('[data-recap-want]');
-            current.disabled = false;
-            current.textContent = 'ほしい';
-            root.querySelector('.recap-status').textContent = 'まだ保存できなかったよ。少し待って、もう一度押してみてね。';
-          }
-        } finally { saving = false; }
       }
     }
     function photoError(event) {

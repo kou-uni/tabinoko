@@ -2,10 +2,10 @@
 .compose-screen{min-width:0;padding-bottom:env(safe-area-inset-bottom,0px);overflow-wrap:anywhere}
 .compose-screen textarea,.compose-screen input,.compose-screen select{font-size:16px;max-width:100%}
 .compose-screen button,.compose-screen a,.compose-screen input,.compose-screen select{min-height:44px;min-width:44px}
-.compose-screen textarea{scroll-margin-bottom:calc(var(--nav-h) + 24px);min-height:132px}
-.compose-voice{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin:13px 0;border-style:dashed;background:var(--soft)}
+.compose-screen textarea{scroll-margin-bottom:calc(var(--nav-h) + 24px);min-height:144px}
+.compose-voice{display:flex;align-items:center;justify-content:center;gap:9px;width:auto;margin:8px 0;border:0;background:transparent}
 .compose-photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.compose-photos img{width:calc(50% - 4px);height:130px;object-fit:cover;border-radius:12px}
+.compose-photos img{width:calc(50% - 4px);height:130px;object-fit:contain;border-radius:0}
 .compose-draft textarea{min-height:180px;line-height:1.8;background:var(--bg)}
 .compose-actions{display:flex;flex-wrap:wrap;gap:8px}
 .compose-actions button{flex:1 1 110px}
@@ -16,3 +16,5 @@
 
 .compose-draft label,.compose-draft .caption{font-family:ui-monospace,monospace;color:var(--gold)}
 .compose-draft label{letter-spacing:.06em}
+
+.draft-tabs{display:flex;gap:8px;margin-top:24px}.draft-tabs button{flex:1;border:0;border-bottom:2px solid var(--divider)}.draft-tabs button[aria-selected=true]{color:var(--accent);border-color:var(--accent)}.compose-draft{padding:12px 0}.compose-context{margin:12px 0}.compose-screen .page-head{margin-bottom:8px}

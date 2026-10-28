@@ -5,10 +5,10 @@
   const $ = (s, r) => (r || document).querySelector(s);
   const short = (s) => { const a = Array.from(String(s || '').replace(/\s+/g, ' ').trim()); return a.slice(0, 42).join('') + (a.length > 42 ? '…' : ''); };
   const phrases = {
-    joy: ['「{word}」、いいなあ！ わたしも隣でわくわくしてるよ。', '「{word}」って聞くと、わたしまで旅が楽しみになるな。', '「{word}」、そんな旅をご一緒できてうれしいな！'],
-    rest: ['「{word}」なんだね。話してくれてありがとう。ひと休みの間も、そばにいるよ。', '「{word}」。無理に元気を出さなくても大丈夫。わたしはここにいるよ。', '「{word}」って聞かせてくれたんだね。今はゆっくりしてもいいんだよ。'],
-    arrive: ['「{word}」に着いたんだね、いいなあ！ わたしも一緒に見渡したいな。', 'わあ、「{word}」まで来たんだ！ 一緒に旅してる気分でうれしいな。', '「{word}」に足跡がひとつ。そこにいるあなたが羨ましいな！'],
-    record: ['「{word}」、このひとこまを一緒に覚えていられてうれしいな。', '「{word}」が旅に加わったね。いいなあ、わたしもそばで味わいたい！', 'わあ、「{word}」！ あなたの旅のおすそわけ、うれしいな。'],
+    joy: ['「{word}」を記録。', '「{word}」を端末に保存。'],
+    rest: ['「{word}」を記録。休めるときに休息を。', '「{word}」を保存。続きは後から書ける。'],
+    arrive: ['「{word}」への訪問を記録。', '訪問記録：「{word}」。'],
+    record: ['「{word}」を記録。', '記録に追加：「{word}」。']
   };
   function subject(ctx) {
     const s = ctx.spotId && T.data.spot(ctx.spotId);
@@ -21,7 +21,7 @@
     return U.fill(U.pickFresh('fairy-' + kind, phrases[kind]), { word });
   }
   function question(text) {
-    const choices = /寺院|石窟|エローラ|アジャンタ/.test(text) ? ['どんなところを、ゆっくり見てみたい？', 'その場所で楽しみなこと、もう少し聞いてもいい？'] : /学|Devcon|ハック|ETH/i.test(text) ? ['どんな出会いを楽しみにしているの？', 'そこで触れてみたいことはある？'] : ['楽しみな場所や日があったら、続きも聞かせてね。', 'その旅でやってみたいこと、思いついたら教えてね。', 'どんな瞬間を覚えておきたい？ 気が向いたら聞かせてね。'];
+    const choices = /寺院|石窟|エローラ|アジャンタ/.test(text) ? ['どんなところを、ゆっくり見てみたい？', 'その場所で楽しみなこと、もう少し聞いてもいい？'] : /学|Devcon|ハック|ETH/i.test(text) ? ['どんな出会いを楽しみにしているの？', 'そこで触れてみたいことはある？'] : ['楽しみな場所や日があったら、続きも聞かせてね。', 'その旅でやってみたいこと、思いついたら教えてね。', '覚えておきたい場面をひとつ。'];
     return /疲|不安|眠|つら|辛|悲|怖|痛|体調/.test(text) ? '続きは、話したくなったときで大丈夫だよ。' : U.pickFresh('fairy-question-' + choices[0], choices);
   }
   function recap() {
@@ -29,7 +29,7 @@
     const records = ['posts', 'notes', 'visits', 'photos'].flatMap((c) => store.all(c)).filter((r) => r.date >= trip.start && r.date <= trip.end && r.date <= U.todayISO() && r.showInTimeline !== false).sort((a, b) => String(b.at || b.date).localeCompare(String(a.at || a.date)));
     const words = [...new Set(records.map(subject))].slice(0, 2);
     if (!words.length) return '帰りの旅も、そばにいるよ。まだ記録はないけれど、覚えておきたいひとこまがあったら聞かせてね。';
-    return 'いい旅だったね。' + words.map((w) => '「' + w + '」').join('も、') + 'も。こんな時間を過ごしたんだね、羨ましいなあ！ 一緒に思い出をめくろう。';
+    return '記録を振り返る。' + words.map((w) => '「' + w + '」').join('も、') + 'を保存している。';
   }
   const returning = () => { const end = store.doc('trip').end; return !!end && U.todayISO() >= U.addDays(end, -1); };
   function compose(ctx) {
@@ -46,10 +46,10 @@
     let alive = true, busy = false;
     const list = store.all('hearing').sort((a, b) => String(a.at || a.date).localeCompare(String(b.at || b.date)));
     const latest = list[list.length - 1];
-    root.innerHTML = '<section class="fairy-view">' + ui.heading('YOUR LITTLE TRAVEL COMPANION', 'ねえ、旅の話をしよう。')
-      + '<div class="fairy-intro">' + ui.fairy('fairy-large') + '<span>あなたと旅する、たびのこ</span></div>'
-      + '<div class="fairy-bubble" id="fairy-answer" role="status">' + esc(latest ? latest.fairyReply || reply({ text: latest.text }) : 'どんな旅に行くの？ 空港で待っているあいだにも、楽しみなことを教えて。わたしも一緒にわくわくしたいな。') + '</div>'
-      + (returning() ? '<div class="fairy-return"><p>' + esc(recap()) + '</p><button class="warm wide" data-route="recap">一緒にアルバムをひらこう →</button></div>' : '')
+    root.innerHTML = '<section class="fairy-view">' + ui.heading('YOUR LITTLE TRAVEL COMPANION', '旅の記録係')
+      + '<div class="fairy-intro">' + ui.fairy('fairy-large') + '<span>記録係 · たびのこ</span></div>'
+      + '<div class="fairy-bubble" id="fairy-answer" role="status">' + esc(latest ? latest.fairyReply || reply({ text: latest.text }) : '店名と値段を残すと、あとで探しやすい。') + '</div>'
+      + (returning() ? '<div class="fairy-return"><p>' + esc(recap()) + '</p><button class="warm wide" data-route="recap">アルバムを開く →</button></div>' : '')
       + '<form id="chat-form"><label for="chat-text">旅のこと、少しずつ聞かせて</label><textarea id="chat-text" maxlength="2000" aria-describedby="fairy-help" placeholder="石窟で彫刻をゆっくり見てみたいな"></textarea><p class="caption" id="fairy-help">何回に分けても大丈夫。回線がなくても、話と書きかけはこの端末に残せるよ。パスポート・ETA・予約番号は書かないでね。</p><button type="button" class="voice" id="chat-voice">' + ui.icon('mic') + '声で話す</button><p class="caption">入力欄を開いて、キーボードのマイクで話してね。音声入力には通信が必要な場合があります（OS・端末の設定によります）。</p><button class="primary wide" id="fairy-send">たびのこに話す ✧</button><p id="fairy-error" role="alert"></p></form>'
       + '<button class="text-btn wide" data-route="plan">旅のしおりをひらく →</button><h2>これまで聞かせてくれた話</h2><div id="fairy-history">' + (list.length ? list.map(history).join('') : '<p class="caption">まだお話はないよ。短いひとことからでもうれしいな。</p>') + '</div></section>';
     const ta = $('#chat-text', root), send = $('#fairy-send', root), voice = $('#chat-voice', root), error = $('#fairy-error', root);
@@ -64,7 +64,7 @@
       busy = true; send.disabled = true; ta.readOnly = true; voice.disabled = true; error.textContent = ''; send.textContent = '聞いているよ…';
       const answer = reply({ text }) + ' ' + question(text);
       try {
-        const entry = await store.put('hearing', M.make('hearing', { id: U.uid(), text, date: U.todayISO(), source: 'fairy', fairyReply: answer }));
+        const entry = await T.feedback.run(() => store.put('hearing', M.make('hearing', { id: U.uid(), text, date: U.todayISO(), source: 'fairy', fairyReply: answer })));
         if (store.draft('hearing').trim() === text) store.setDraft('hearing', '');
         bus.emit('hearing:added', { entry });
         if (!alive) return;
@@ -84,11 +84,7 @@
     return '<article class="fairy-message"><p>' + esc(c.text) + '</p><small>' + esc(stamp(c)) + '</small>' + (c.fairyReply ? '<p class="fairy-history-reply">✧ たびのこ<br>' + esc(c.fairyReply) + '</p>' : '') + '</article>';
   }
   let slot = null, route = '', lastText = '';
-  function companion() {
-    if (!slot) return;
-    slot.hidden = ['fairy', 'welcome', 'purposes'].includes(route);
-    slot.innerHTML = '<aside class="fairy-companion">' + ui.fairy('') + '<div><p>' + esc(returning() ? recap() : lastText || '旅の続き、気が向いたら聞かせてね。わたしも一緒に楽しみたいな。') + '</p><button class="text-btn" data-route="fairy">妖精に話しかける</button>' + (returning() ? '<button class="text-btn" data-route="recap">アルバムをひらく →</button>' : '') + '</div></aside>';
-  }
+  function companion() { if (slot) { slot.hidden = true; slot.innerHTML = ''; } }
   function say(text) {
     if (!text) return;
     // 長い返答は文書フローの相棒欄へ。固定通知で入力・保存操作を覆わない。
