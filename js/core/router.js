@@ -198,7 +198,10 @@
       const viewportChrome = () => {
         if (!document.documentElement.style) return;
         const viewport = window.visualViewport;
-        const inset = viewport && viewport.scale === 1 ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop) : 0;
+        const raw = viewport && viewport.scale === 1 ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop) : 0;
+        const ae = document.activeElement, typing = !!(ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName || '') || ae && ae.isContentEditable);
+        const inset = typing && raw > 120 ? raw : 0; // アドレスバーの伸縮をキーボードと誤認してナビを動かさない
+        const navEl = document.getElementById('nav'); if (navEl && navEl.hidden && current.route && !document.body.classList.contains('no-nav')) navEl.hidden = false;
         document.documentElement.style.setProperty('--keyboard-inset', inset + 'px');
         const nav = document.getElementById('nav');
         if (nav && !nav.hidden) document.documentElement.style.setProperty('--nav-h', Math.ceil(nav.getBoundingClientRect().height) + 'px');

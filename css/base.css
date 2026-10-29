@@ -125,10 +125,6 @@ html{scroll-padding-bottom:calc(var(--nav-h) + var(--keyboard-inset,0px) + 24px)
 .toast{bottom:calc(var(--nav-h) + var(--keyboard-inset,0px) + 14px);pointer-events:none}
 .dialog-head{position:sticky;top:-23px;z-index:2;background:var(--bg);padding:8px 0}
 #dialog-close{flex:none;align-self:flex-start}
-#nav{view-transition-name:tabbar}
-::view-transition-group(tabbar){z-index:120}
-::view-transition-old(tabbar){display:none}
-::view-transition-new(tabbar){animation:none}
 .unlock-remember{display:flex;align-items:center;gap:12px;grid-column:1/-1;min-height:44px}
 .unlock-remember input{width:24px;min-height:24px;flex:none;accent-color:var(--turquoise)}
 .pwa-update{margin:12px 0;padding:12px;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:12px}
