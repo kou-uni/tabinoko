@@ -72,6 +72,7 @@
       const d = $('#dialog'), opener = document.activeElement;
       d.innerHTML = '<div class="dialog-head"><h2 id="dialog-title">' + esc(opts.title || '') + '</h2><button type="button" id="dialog-close" class="text-btn" aria-label="閉じる">✕</button></div>' + (opts.body || '');
       d.setAttribute('aria-labelledby', 'dialog-title');
+      d.dataset.navCover = 'intentional'; // modal top layer: close always remains reachable
       $('#dialog-close').onclick = () => ui.closeDialog();
       d.onclose = () => { if (opts.onClose) opts.onClose(); if (opener && opener.isConnected) opener.focus({ preventScroll: true }); };
       d.onclick = (e) => { if (e.target === d) ui.closeDialog(); };

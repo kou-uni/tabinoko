@@ -33,3 +33,11 @@
 .map-spot summary{display:flex;align-items:center;gap:8px;flex-wrap:wrap;cursor:pointer}.map-spot[open]{background:var(--surface);padding:16px;border-left:2px solid var(--accent)}.map-spot summary h3{flex:1;min-width:120px}.map-badge{border:0;background:transparent;padding:0}.map-visited{border-left:3px solid var(--accent)}
 
 .map-spot{border:0;border-bottom:1px solid var(--divider);padding:8px 0 16px}.map-spot summary{min-height:48px}.map-spot summary::before{content:"";width:28px;height:28px;flex:none;border:2px solid var(--turquoise);border-radius:999px}.map-visited summary::before{content:"✓";background:var(--turquoise);color:var(--paper);text-align:center}.map-spot[open]{border:2px solid var(--line);border-radius:16px}.map-marker span{background:var(--paper);color:var(--turquoise);border-color:var(--turquoise)}.map-marker-visited span{background:var(--turquoise);color:var(--paper);border-radius:999px}
+/* しおりの丸い番号札を、ピンと詳細で共用する。 */
+.map-optional{margin:0 0 28px}
+.map-panel{border:2px solid var(--line);border-radius:24px 24px 16px 16px;background-color:var(--soft);background-image:radial-gradient(var(--divider) 1px,transparent 1px);background-size:20px 20px}
+.map-spot summary::before{display:none}
+.map-number{display:inline-grid;place-items:center;width:36px;height:36px;flex:none;border:2px solid var(--turquoise);border-radius:50% 50% 44% 44%;color:var(--turquoise);background:var(--paper);font-weight:700}
+.map-highlight{outline:3px solid var(--accent);outline-offset:4px}
+.map-spot{scroll-margin-block:100px}
+.map-marker span{width:36px;height:36px;border-radius:50% 50% 44% 44%;font-weight:700}

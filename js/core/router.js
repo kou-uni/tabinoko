@@ -63,7 +63,7 @@
     const [route, qs] = h.split('?');
     const params = {};
     new URLSearchParams(qs || '').forEach((v, k) => { params[k] = v; });
-    return { route: route || '', params };
+    return { route: route && route.startsWith('/') && !findMod(route) ? route.slice(1) : route || '', params };
   }
   function href(route, params) {
     const qs = params && Object.keys(params).length ? '?' + new URLSearchParams(params).toString() : '';
@@ -195,7 +195,17 @@
       window.addEventListener('resize', () => { buildChrome(current.route); compact(); });
       const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
       if (motion.addEventListener) motion.addEventListener('change', () => { if (scene) { scene.cancel(); scene = null; } navigation.interrupt(); });
-      if (window.visualViewport) { const keyboard = () => document.body.classList.toggle('keyboard-open', ['post','notes'].includes(current.route) && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) && window.innerHeight - window.visualViewport.height > 140); window.visualViewport.addEventListener('resize', keyboard); document.addEventListener('focusout', () => setTimeout(keyboard, 0)); }
+      const viewportChrome = () => {
+        if (!document.documentElement.style) return;
+        const viewport = window.visualViewport;
+        const inset = viewport && viewport.scale === 1 ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop) : 0;
+        document.documentElement.style.setProperty('--keyboard-inset', inset + 'px');
+        const nav = document.getElementById('nav');
+        if (nav && !nav.hidden) document.documentElement.style.setProperty('--nav-h', Math.ceil(nav.getBoundingClientRect().height) + 'px');
+      };
+      if (window.visualViewport) { window.visualViewport.addEventListener('resize', viewportChrome); window.visualViewport.addEventListener('scroll', viewportChrome); }
+      if (window.ResizeObserver) new ResizeObserver(viewportChrome).observe(document.getElementById('nav'));
+      window.addEventListener('resize', viewportChrome); viewportChrome();
       document.addEventListener('click', (e) => {
         const b = e.target.closest('[data-route]');
         if (!b) return;

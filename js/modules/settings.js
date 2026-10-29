@@ -55,11 +55,21 @@
           + '<details class="card"><summary>オフライン起動・ホーム画面への追加</summary><h3>旅先でも開けるように</h3><p id="settings-pwa" role="status">' + esc(pwaText()) + '</p>' + (U.isStandalone() ? '<p>ホーム画面から開いています。</p>' : installHelp)
           + '<ol><li>ホーム画面のアイコンから、回線のある場所で開く</li><li>準備完了後、機内モードで開き直し、メモを残してみる</li><li>回線を戻し、写真つきバックアップを保存する</li></ol></details>'
           + '<section class="card"><h3>表示と操作</h3><label for="ui-theme">表示テーマ</label><select id="ui-theme">' + [['dark','ダーク'],['light','ライト'],['auto','端末に合わせる']].map(([v,label]) => '<option value="' + v + '" ' + ((s.uiTheme || 'light') === v ? 'selected' : '') + '>' + label + '</option>').join('') + '</select><label class="settings-toggle"><input type="checkbox" id="ui-haptics" ' + (s.uiHaptics ? 'checked' : '') + '>触覚フィードバック（対応端末のみ）</label><label class="settings-toggle"><input type="checkbox" id="ui-sound" ' + (s.uiSound ? 'checked' : '') + '>タップと保存の音</label><label class="settings-toggle"><input type="checkbox" id="ui-fairy" ' + (s.uiFairy === false ? 'checked' : '') + '>妖精を非表示</label><label class="settings-toggle"><input type="checkbox" id="ui-motion" ' + (s.uiMotion === false ? '' : 'checked') + '>画面の動き</label><p id="settings-save-status" role="status"></p><button type="button" class="text-btn" id="settings-retry" hidden>設定の保存を再試行</button><p class="caption">端末の「動きを減らす」が有効な間、動き・効果音・振動は停止します。</p></section>'
-          + (T.unlock && T.unlock.sealed ? '<div class="card"><h3>この端末のロック</h3><p>今は鍵を覚えているよ。掛けなおすと、次は合言葉で開けるよ。</p><button class="wide" id="relock">この端末のロックを掛けなおす</button></div>' : '')
+          + (T.unlock && T.unlock.sealed ? '<section class="card"><h3>この端末のあいことば</h3><p id="key-state">' + (T.unlock.state().remembered ? '覚えている' : '覚えない（このタブを閉じると再ロック）') + '</p><label class="settings-toggle"><span>この端末で覚える</span><input id="key-remember" type="checkbox" role="switch"' + (T.unlock.state().remembered ? ' checked' : '') + '></label><label for="key-period">覚える期間（使うたび延長）</label><select id="key-period">' + [[30,'30日'],[90,'90日'],['forever','ずっと']].map(([v,label]) => '<option value="' + v + '"' + (String(T.unlock.state().days) === String(v) ? ' selected' : '') + '>' + label + '</option>').join('') + '</select><p class="caption">端末を他人が操作できると、覚えた鍵で旅程を開けます。保存するのは取り出せない鍵だけで、あいことばそのものは保存しません。鍵が消えた・期限切れの場合は再入力が必要です。あいことばを忘れると復号できません。</p><button class="wide" id="relock">いま忘れさせる（再ロック）</button></section>' : '')
           + '<div class="card"><button class="wide" data-route="upgrade">おまとめ（高画質）</button><button class="wide" data-route="/about">このアプリについて</button><p class="caption">この端末のほしい気持ち: ①' + (counts ? counts[1] : '—') + ' ②' + (counts ? counts[2] : '—') + '</p><p class="caption">①購入への興味 ②購入したい気持ち。各段階1日1回まで。集計先が設定されている場合は匿名の回数のみ送るよ。</p></div>'
           + '<div class="card"><h3>全部消す</h3><p class="caption">この版の記録・写真・設定・ライセンス・この端末の希望回数を消します。読み込み元の旧版や、書き出したファイルは残ります。初期の旅程は戻ります。</p><button class="wide" id="wipe">すべて消去…</button></div>';
       };
       const displayChange = async e => {
+        if (['key-remember','key-period'].includes(e.target.id)) {
+          if (busy) return;
+          busy = true;
+          const toggle = $('#key-remember',root), select = $('#key-period',root);
+          toggle.disabled = select.disabled = true;
+          try { await T.unlock.setRemember(toggle.checked, select.value); if (active) $('#key-state',root).textContent = toggle.checked ? '覚えている' : '覚えない（このタブを閉じると再ロック）'; }
+          catch (err) { ui.toast('鍵の設定を変更できませんでした。もう一度試してください。'); toggle.checked = T.unlock.state().remembered; select.value = T.unlock.state().days; }
+          finally { busy = false; toggle.disabled = select.disabled = false; }
+          return;
+        }
         const key = { 'ui-theme': 'uiTheme', 'ui-haptics': 'uiHaptics', 'ui-sound': 'uiSound', 'ui-fairy': 'uiFairy', 'ui-motion': 'uiMotion' }[e.target.id];
         if (!key || busy) return;
         busy = true; root.querySelectorAll('[id^="ui-"]').forEach(el => { el.disabled = true; });
