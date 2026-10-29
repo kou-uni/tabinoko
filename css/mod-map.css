@@ -41,3 +41,17 @@
 .map-highlight{outline:3px solid var(--accent);outline-offset:4px}
 .map-spot{scroll-margin-block:100px}
 .map-marker span{width:36px;height:36px;border-radius:50% 50% 44% 44%;font-weight:700}
+/* Canvas のみ夜色にし、番号と帰属表記の可読性を保つ。 */
+.map-night .maplibregl-canvas{filter:invert(.9) hue-rotate(180deg) brightness(.85)}
+.map-libre-marker{width:44px;height:44px;padding:0;border:0;background:transparent;box-shadow:none;cursor:pointer}
+.map-marker span,.map-number{color:var(--map-day-color,var(--turquoise));border-color:var(--map-day-color,var(--turquoise))}
+.map-marker-visited span{background:var(--map-day-color,var(--turquoise));color:#fff}
+.map-panel .maplibregl-ctrl button{width:44px;height:44px;min-height:44px}
+.map-panel .maplibregl-ctrl-attrib{font-size:11px;line-height:1.5;background:#fff;color:#222;max-width:100%}
+.map-panel .maplibregl-ctrl-attrib a{display:inline;min-height:0;min-width:0;padding:0;color:#165c65}
+.map-panel .maplibregl-canvas-container.maplibregl-touch-zoom-rotate,.map-panel.leaflet-container.leaflet-touch-drag{touch-action:pan-y}
+.map-days{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 12px}
+.map-days button{flex:none;min-width:44px;min-height:44px;white-space:nowrap}
+.map-days button[aria-pressed="true"]{background:var(--turquoise);color:var(--paper);border-color:var(--turquoise)}
+.map-days button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.map-cluster span{width:44px;height:44px;border-radius:50%;font-size:14px;background:var(--paper);color:var(--ink);border:3px solid var(--ink)}

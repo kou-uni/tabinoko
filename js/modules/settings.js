@@ -24,7 +24,7 @@
       const coach = document.createElement('div'); coach.className = 'settings-coach'; slot.appendChild(coach);
       const nudge = document.createElement('div'); nudge.className = 'settings-coach'; slot.appendChild(nudge);
       const sync = () => {
-        line.textContent = U.isOnline() ? '' : 'オフライン · 外部の地図・投稿先には接続が必要';
+        line.textContent = U.isOnline() ? '' : 'オフライン · 未保存の地図・投稿先には接続が必要';
         coach.innerHTML = '';
         nudge.innerHTML = '';
         const settingsButton = document.querySelector('.header-tools [data-route="settings"]');
@@ -40,7 +40,17 @@
       ['app:online', 'app:offline', 'store:changed', 'app:ready', 'route:changed'].forEach((n) => bus.on(n, sync)); sync();
     },
     render(root) {
-      let active = true, revision = 0, busy = false, prepared = null, exportUrl = null;
+      let active = true, revision = 0, busy = false, prepared = null, exportUrl = null, mapController = null, mapConfirming = false;
+      let mapStatus = 'ライト地図の旅程スポット周辺を保存します。Wi-Fi 推奨。通信量は最大約60MBが目安です（地図の内容で増減）。保存済み範囲だけオフラインで表示できます。端末の空き容量や自動消去により使えない場合があります。';
+      let mapDone = 0, mapTotal = 1;
+      const syncMap = () => {
+        const status = $('#settings-map-status', root), start = $('#save-offline-map', root), stop = $('#stop-offline-map', root), bar = $('#settings-map-progress', root);
+        if (!active || !status) return;
+        status.textContent = mapStatus;
+        start.disabled = !!mapController || mapConfirming;
+        stop.hidden = !mapController;
+        bar.hidden = !mapController; bar.max = Math.max(1, mapTotal); bar.value = mapDone;
+      };
       const release = () => { if (exportUrl) URL.revokeObjectURL(exportUrl); exportUrl = null; prepared = null; };
       const view = async () => {
         const rev = ++revision, us = await store.usage();
@@ -57,8 +67,36 @@
           + '<section class="card"><h3>表示と操作</h3><label for="ui-theme">表示テーマ</label><select id="ui-theme">' + [['dark','ダーク'],['light','ライト'],['auto','端末に合わせる']].map(([v,label]) => '<option value="' + v + '" ' + ((s.uiTheme || 'light') === v ? 'selected' : '') + '>' + label + '</option>').join('') + '</select><label class="settings-toggle"><input type="checkbox" id="ui-haptics" ' + (s.uiHaptics ? 'checked' : '') + '>触覚フィードバック（対応端末のみ）</label><label class="settings-toggle"><input type="checkbox" id="ui-sound" ' + (s.uiSound ? 'checked' : '') + '>タップと保存の音</label><label class="settings-toggle"><input type="checkbox" id="ui-fairy" ' + (s.uiFairy === false ? 'checked' : '') + '>妖精を非表示</label><label class="settings-toggle"><input type="checkbox" id="ui-motion" ' + (s.uiMotion === false ? '' : 'checked') + '>画面の動き</label><p id="settings-save-status" role="status"></p><button type="button" class="text-btn" id="settings-retry" hidden>設定の保存を再試行</button><p class="caption">端末の「動きを減らす」が有効な間、動き・効果音・振動は停止します。</p></section>'
           + (T.unlock && T.unlock.sealed ? '<section class="card"><h3>この端末のあいことば</h3><p id="key-state">' + (T.unlock.state().remembered ? '覚えている' : '覚えない（このタブを閉じると再ロック）') + '</p><label class="settings-toggle"><span>この端末で覚える</span><input id="key-remember" type="checkbox" role="switch"' + (T.unlock.state().remembered ? ' checked' : '') + '></label><label for="key-period">覚える期間（使うたび延長）</label><select id="key-period">' + [[30,'30日'],[90,'90日'],['forever','ずっと']].map(([v,label]) => '<option value="' + v + '"' + (String(T.unlock.state().days) === String(v) ? ' selected' : '') + '>' + label + '</option>').join('') + '</select><p class="caption">端末を他人が操作できると、覚えた鍵で旅程を開けます。保存するのは取り出せない鍵だけで、あいことばそのものは保存しません。鍵が消えた・期限切れの場合は再入力が必要です。あいことばを忘れると復号できません。</p><button class="wide" id="relock">いま忘れさせる（再ロック）</button></section>' : '')
           + '<div class="card"><button class="wide" data-route="upgrade">おまとめ（高画質）</button><button class="wide" data-route="/about">このアプリについて</button><p class="caption">この端末のほしい気持ち: ①' + (counts ? counts[1] : '—') + ' ②' + (counts ? counts[2] : '—') + '</p><p class="caption">①購入への興味 ②購入したい気持ち。各段階1日1回まで。集計先が設定されている場合は匿名の回数のみ送るよ。</p></div>'
-          + '<div class="card"><h3>全部消す</h3><p class="caption">この版の記録・写真・設定・ライセンス・この端末の希望回数を消します。読み込み元の旧版や、書き出したファイルは残ります。初期の旅程は戻ります。</p><button class="wide" id="wipe">すべて消去…</button></div>';
+          + '<div class="card"><h3>全部消す</h3><p class="caption">この版の記録・写真・設定・ライセンス・この端末の希望回数を消します。読み込み元の旧版や、書き出したファイルは残ります。初期の旅程は戻ります。</p><button class="wide" id="wipe">すべて消去…</button></div>'
+          + '<section class="card"><h3>旅先に備えて地図を温める</h3><p id="settings-map-status" class="caption" role="status"></p><progress id="settings-map-progress" aria-label="地図の保存状況" hidden></progress><button type="button" class="wide" id="save-offline-map">ムンバイ周辺の地図をこの端末に保存</button><button type="button" class="wide" id="stop-offline-map" hidden>保存を中断</button></section>';
+        syncMap();
       };
+      const mapClick = async e => {
+        const b = e.target.closest('button');
+        if (!b) return;
+        if (b.id === 'stop-offline-map') { if (mapController) mapController.abort(); return; }
+        if (b.id !== 'save-offline-map' || mapController || mapConfirming) return;
+        if (!T.mapOffline || T.pwa?.status !== 'ready') {
+          mapStatus = 'オフライン起動の準備完了後に、もう一度お試しください。'; syncMap(); return;
+        }
+        mapConfirming = true; syncMap();
+        try {
+          const spots = T.data.days().flatMap(day => (day.items || []).map(item => T.data.spot(item.spotId))).filter(Boolean);
+          if (!T.mapOffline.tileCoordinates(spots).length) {
+            mapStatus = '保存できる位置つきの旅程スポットがありません。'; return;
+          }
+          const agreed = await ui.confirm({ title: '周辺の地図を保存しますか？', body: '旅程スポット周辺のズーム12〜15を保存します。通信量は最大約60MBが目安（内容で増減）、Wi-Fi 推奨です。OpenFreeMap に表示範囲を送ります。端末の現在地は送りません。最大600件を保存し、古い地図から削除します。途中で中断できます。', ok: '地図を保存' });
+          if (!active || !agreed) return;
+          mapController = new AbortController(); mapStatus = '地図を準備しています…'; mapDone = 0; mapTotal = 1; syncMap();
+          const result = await T.mapOffline.warmMaps(spots, mapController.signal, p => {
+            mapDone = p.done; mapTotal = p.total;
+            mapStatus = '地図を保存中… ' + p.done + ' / ' + p.total + (p.failed ? '（取得できないデータあり）' : ''); syncMap();
+          });
+          mapStatus = result.aborted ? '保存を中断しました。保存できた範囲は残っています。' : result.failed ? '一部の地図を保存できませんでした。回線と空き容量を確認して、再度お試しください。' : '周辺のライト地図を保存しました。出発前に機内モードで地図を確認してください。';
+        } catch (_) { mapStatus = mapController?.signal.aborted ? '保存を中断しました。' : '地図を保存できませんでした。回線と空き容量を確認して、再度お試しください。'; }
+        finally { mapController = null; mapConfirming = false; syncMap(); }
+      };
+      root.addEventListener('click', mapClick);
       const displayChange = async e => {
         if (['key-remember','key-period'].includes(e.target.id)) {
           if (busy) return;
@@ -127,7 +165,7 @@
       const off = bus.on('pwa:changed', () => { const el = $('#settings-pwa', root); if (active && el) el.textContent = pwaText(); });
       view().catch((err) => ui.toast(err.message));
       root.addEventListener('click', onClick); root.addEventListener('change', onChange);
-      return () => { root.removeEventListener('change', displayChange); active = false; release(); off(); root.removeEventListener('click', onClick); root.removeEventListener('change', onChange); };
+      return () => { root.removeEventListener('click', mapClick); if (mapController) mapController.abort(); root.removeEventListener('change', displayChange); active = false; release(); off(); root.removeEventListener('click', onClick); root.removeEventListener('change', onChange); };
     },
   });
 })();

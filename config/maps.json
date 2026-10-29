@@ -1,3 +1,6 @@
 {
+  "provider": "openfreemap",
+  "styleLight": "https://tiles.openfreemap.org/styles/bright",
+  "styleDark": "https://tiles.openfreemap.org/styles/positron",
   "googleMapsApiKey": ""
 }
