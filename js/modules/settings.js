@@ -7,7 +7,7 @@
   const installHelp = '<p>Safari の共有ボタン →「ホーム画面に追加」。追加したアイコンから開いてください。</p><p class="caption">記録を始める前の追加がおすすめです。追加後に記録が見えない場合は、元の Safari で書き出し、新しい方で読み込んでください。</p>';
   const pwaText = () => {
     const p = T.pwa || {};
-    return ({ ready: 'オフライン用の準備ができました。機内モードでも開けるか試してください。', preparing: 'オフライン用の準備中です。回線につないだままお待ちください。', error: 'オフライン用の準備ができませんでした。回線につないで開き直してください。', disabled: '開発用設定でオフライン準備を停止しています。', unavailable: 'この開き方ではオフライン起動を準備できません。Safari で HTTPS の URL を開いてください。' })[p.status || 'unavailable'] + (p.updateWaiting ? ' 更新があります。書きかけを保存し、すべてのタブとホーム画面のアプリを閉じてから開き直してください。' : '');
+    return ({ ready: 'オフライン用の準備ができました。機内モードでも開けるか試してください。', preparing: 'オフライン用の準備中です。回線につないだままお待ちください。', error: 'オフライン用の準備ができませんでした。回線につないで開き直してください。', disabled: '開発用設定でオフライン準備を停止しています。', unavailable: 'この開き方ではオフライン起動を準備できません。Safari で HTTPS の URL を開いてください。' })[p.status || 'unavailable'] + (p.updateWaiting ? ' 新しい版があります。書きかけを保存してから更新してください。' : '');
   };
   function backupDue() {
     const s = store.doc('settings');
@@ -62,6 +62,7 @@
           + (store.degraded ? '<p role="status">' + esc(store.degraded) + '</p>' : '')
           + '<button class="wide" data-route="purposes">旅の目的・見せたい相手を変える</button></div>'
           + '<div class="card"><h3>バックアップ</h3><p class="caption">最後に保存を確認: ' + (s.lastBackupAt ? esc(new Date(s.lastBackupAt).toLocaleString('ja-JP')) : 'まだありません') + '</p><p class="caption">写真・書きかけを含む JSON です。「ファイルに保存」で保存先を選び、保存されたことを確認してください。共有先に選んだアプリやクラウドには記録が渡ります。</p><button class="primary wide" id="export">書き出す（写真つき）</button><div id="settings-export"></div><div class="spacer"></div><button type="button" class="wide" id="import-backup">バックアップを読み込む</button><input id="import-file" type="file" accept="application/json,.json" hidden><p class="caption">読み込みは今の記録に結合します。編集した旅程を初期旅程より優先し、同じ記録は更新日時の新しい方を残します。</p><button class="wide" id="persist">消えにくい保存をお願いする</button><p class="caption">' + (us.persisted === true ? 'ブラウザが永続保存を許可しています。' : '永続保存はブラウザが判断します。') + ' 許可されても、端末故障やデータ消去には備えてバックアップを。</p></div>'
+          + '<section class="card"><h3>アプリの更新</h3><button type="button" id="check-update">更新を確認</button><button type="button" id="apply-update"' + (T.pwa?.updateWaiting ? '' : ' hidden') + '>いま更新する</button><p id="update-result" role="status"></p></section>'
           + '<details class="card"><summary>オフライン起動・ホーム画面への追加</summary><h3>旅先でも開けるように</h3><p id="settings-pwa" role="status">' + esc(pwaText()) + '</p>' + (U.isStandalone() ? '<p>ホーム画面から開いています。</p>' : installHelp)
           + '<ol><li>ホーム画面のアイコンから、回線のある場所で開く</li><li>準備完了後、機内モードで開き直し、メモを残してみる</li><li>回線を戻し、写真つきバックアップを保存する</li></ol></details>'
           + '<section class="card"><h3>表示と操作</h3><label for="ui-theme">表示テーマ</label><select id="ui-theme">' + [['dark','ダーク'],['light','ライト'],['auto','端末に合わせる']].map(([v,label]) => '<option value="' + v + '" ' + ((s.uiTheme || 'light') === v ? 'selected' : '') + '>' + label + '</option>').join('') + '</select><label class="settings-toggle"><input type="checkbox" id="ui-haptics" ' + (s.uiHaptics ? 'checked' : '') + '>触覚フィードバック（対応端末のみ）</label><label class="settings-toggle"><input type="checkbox" id="ui-sound" ' + (s.uiSound ? 'checked' : '') + '>タップと保存の音</label><label class="settings-toggle"><input type="checkbox" id="ui-fairy" ' + (s.uiFairy === false ? 'checked' : '') + '>妖精を非表示</label><label class="settings-toggle"><input type="checkbox" id="ui-motion" ' + (s.uiMotion === false ? '' : 'checked') + '>画面の動き</label><p id="settings-save-status" role="status"></p><button type="button" class="text-btn" id="settings-retry" hidden>設定の保存を再試行</button><p class="caption">端末の「動きを減らす」が有効な間、動き・効果音・振動は停止します。</p></section>'
@@ -125,7 +126,14 @@
         const b = e.target.closest('button'); if (!b || busy) return;
         try {
           busy = true;
-          if (b.id === 'relock') {
+          if (b.id === 'check-update') {
+            b.disabled = true;
+            $('#update-result', root).textContent = '確認中…';
+            const result = T.pwa?.checkUpdate ? await T.pwa.checkUpdate() : 'この環境では更新を確認できません。';
+            if (active) { $('#update-result', root).textContent = result; b.disabled = false; }
+          } else if (b.id === 'apply-update') {
+            if (T.pwa?.applyUpdate) await T.pwa.applyUpdate();
+          } else if (b.id === 'relock') {
             await T.unlock.relock();
           } else if (b.id === 'import-backup') {
             $('#import-file', root).click();
@@ -162,7 +170,7 @@
         } catch (err) { ui.toast(err.userMessage || err.message); }
         finally { busy = false; e.target.value = ''; }
       };
-      const off = bus.on('pwa:changed', () => { const el = $('#settings-pwa', root); if (active && el) el.textContent = pwaText(); });
+      const off = bus.on('pwa:changed', () => { const el = $('#settings-pwa', root); if (active && el) el.textContent = pwaText(); const apply = $('#apply-update', root); if (active && apply) apply.hidden = !T.pwa?.updateWaiting; });
       view().catch((err) => ui.toast(err.message));
       root.addEventListener('click', onClick); root.addEventListener('change', onChange);
       return () => { root.removeEventListener('click', mapClick); if (mapController) mapController.abort(); root.removeEventListener('change', displayChange); active = false; release(); off(); root.removeEventListener('click', onClick); root.removeEventListener('change', onChange); };

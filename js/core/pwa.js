@@ -1,4 +1,4 @@
-/* PWA の準備状態。更新は全タブを閉じた後に適用し、入力中に再読込しない。 */
+/* PWA の準備状態。更新は本人の操作で適用し、入力中に再読込しない。 */
 (function () {
   'use strict';
   const T = window.Tabi;
@@ -89,8 +89,21 @@
     return { done, total: urls.length, failed, aborted: signal.aborted };
   }
   T.mapOffline = { tileCoordinates, warmMaps };
-  const state = T.pwa = { status: 'unavailable', updateWaiting: false };
-  const publish = () => T.bus.emit('pwa:changed', Object.assign({}, state));
+  // DOMから独立した、利用者の同意と再読込の状態。
+  function createUpdateState() {
+    return {
+      dismissed: false, requested: false, activated: false, reloaded: false,
+      visible(waiting) { return !this.dismissed && (waiting || this.activated); },
+      request(blocked) { if (blocked || this.reloaded) return false; this.requested = true; return true; },
+      controller() { if (this.requested) this.activated = true; },
+      reload(blocked) {
+        if (!this.requested || !this.activated || this.reloaded || blocked) return false;
+        this.reloaded = true; return true;
+      }
+    };
+  }
+  const state = T.pwa = { status: 'unavailable', updateWaiting: false, createUpdateState };
+  const publish = () => T.bus.emit('pwa:changed', { status: state.status, updateWaiting: state.updateWaiting });
   if (!('serviceWorker' in navigator)) return;
   if (T.util.param('nosw') !== null) { state.status = 'disabled'; return; }
   if (!(location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname))) return;
@@ -98,18 +111,79 @@
   window.addEventListener('load', async () => {
     try {
       const reg = await navigator.serviceWorker.register('sw.js');
+      const update = createUpdateState(), edited = new Set();
+      try { update.dismissed = sessionStorage.getItem('tabinoko-update-later') === '1'; } catch (_) { /* メモリ内で保持 */ }
+      const track = e => { if (e.target.matches('input, textarea, select, [contenteditable]')) edited.add(e.target); };
+      document.addEventListener('input', track);
+      document.addEventListener('change', track);
+      const blocked = () => {
+        for (const el of edited) if (!el.isConnected) edited.delete(el);
+        const saving = T.saveUI && T.saveUI.state;
+        return edited.size > 0 || !!(saving && (saving.pending || saving.failed));
+      };
+      const hint = '書きかけを保存してから、設定の「いま更新する」を押してね。';
+      const banner = document.createElement('section');
+      banner.className = 'pwa-update'; banner.hidden = true;
+      banner.setAttribute('aria-label', 'アプリの更新');
+      banner.innerHTML = '<p role="status">新しい版があります。</p><div><button type="button" data-update>いま更新する</button><button type="button" data-later>あとで</button></div>';
+      document.getElementById('slot-banner').appendChild(banner);
       const sync = () => {
         state.status = navigator.serviceWorker.controller ? 'ready' : 'preparing';
-        state.updateWaiting = !!reg.waiting; publish();
+        state.updateWaiting = !!reg.waiting || update.activated;
+        banner.hidden = !update.visible(state.updateWaiting); publish();
       };
-      navigator.serviceWorker.addEventListener('controllerchange', sync);
+      let applying = false;
+      state.applyUpdate = async () => {
+        if (applying || (!reg.waiting && !update.activated)) return;
+        if (blocked()) { T.ui.toast(hint); return; }
+        applying = true;
+        try {
+          if (T.store) await T.store.flushDrafts();
+          if (!update.request(blocked())) { T.ui.toast(hint); return; }
+          if (update.activated) { if (update.reload(blocked())) location.reload(); }
+          else if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        } catch (_) { T.ui.toast(hint); }
+        finally { applying = false; }
+      };
+      banner.querySelector('[data-update]').onclick = () => state.applyUpdate();
+      banner.querySelector('[data-later]').onclick = () => {
+        update.dismissed = true;
+        try { sessionStorage.setItem('tabinoko-update-later', '1'); } catch (_) { /* メモリ内で保持 */ }
+        sync();
+      };
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        update.controller(); sync();
+        if (update.reload(blocked())) location.reload();
+        else if (update.activated && !update.reloaded) T.ui.toast(hint);
+      });
       const watch = () => { const worker = reg.installing; if (worker) worker.addEventListener('statechange', () => {
-        if (worker.state === 'redundant' && !navigator.serviceWorker.controller) state.status = 'error';
-        else sync();
-        publish();
+        sync();
+        if (worker.state === 'redundant' && !navigator.serviceWorker.controller) { state.status = 'error'; publish(); }
       }); };
       reg.addEventListener('updatefound', watch); watch(); sync();
       navigator.serviceWorker.ready.then(sync);
+      let checking;
+      state.checkUpdate = () => {
+        if (checking) return checking;
+        checking = (async () => {
+          try {
+            await reg.update();
+            const worker = reg.installing;
+            if (worker && !['installed', 'activated', 'redundant'].includes(worker.state)) {
+              await new Promise((resolve, reject) => {
+                const timer = setTimeout(() => finish(new Error('timeout')), 30000);
+                const finish = error => { clearTimeout(timer); worker.removeEventListener('statechange', changed); error ? reject(error) : resolve(); };
+                const changed = () => { if (['installed', 'activated', 'redundant'].includes(worker.state)) finish(worker.state === 'redundant' ? new Error('install failed') : null); };
+                worker.addEventListener('statechange', changed); changed();
+              });
+            }
+            sync(); return state.updateWaiting ? '新しい版があります' : '最新です';
+          } catch (_) { return '更新を確認できませんでした。回線を確認してください。'; }
+        })().finally(() => { checking = null; });
+        return checking;
+      };
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') state.checkUpdate(); });
+      state.checkUpdate();
     } catch (e) { state.status = 'error'; publish(); }
   });
 })();
